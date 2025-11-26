@@ -58,7 +58,7 @@ const PipelineHimyt = () => {
               </Button>
               <div>
                 <h1 className="text-2xl font-bold text-foreground">Pipeline HIMYT</h1>
-                <p className="text-sm text-muted-foreground">PME Industrielles + Automatisation IA</p>
+                <p className="text-sm text-muted-foreground">Dev/IA/Auto</p>
               </div>
             </div>
             <div className="flex gap-3">

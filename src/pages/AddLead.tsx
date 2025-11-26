@@ -83,7 +83,7 @@ const AddLead = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="tryon">TRYON (Eshops/Mode)</SelectItem>
-                    <SelectItem value="himyt">HIMYT (PME Industrielles)</SelectItem>
+                    <SelectItem value="himyt">HIMYT (Dev/IA/Auto)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
