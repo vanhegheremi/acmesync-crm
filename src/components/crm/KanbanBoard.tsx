@@ -11,6 +11,7 @@ import {
   useSensor,
   useSensors,
   closestCenter,
+  useDroppable,
 } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { useSortable } from "@dnd-kit/sortable";
@@ -48,6 +49,51 @@ function DraggableLeadCard({ lead, onLeadClick }: DraggableLeadCardProps) {
   return (
     <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
       <LeadCard lead={lead} onClick={() => onLeadClick(lead)} />
+    </div>
+  );
+}
+
+interface DroppableColumnProps {
+  status: LeadStatus;
+  leads: Lead[];
+  onLeadClick: (lead: Lead) => void;
+  getColumnColor: (status: LeadStatus) => string;
+}
+
+function DroppableColumn({ status, leads, onLeadClick, getColumnColor }: DroppableColumnProps) {
+  const { setNodeRef, isOver } = useDroppable({
+    id: status,
+  });
+
+  return (
+    <div className="flex-shrink-0 w-80">
+      <Card 
+        ref={setNodeRef}
+        className={`p-4 min-h-[600px] transition-colors ${getColumnColor(status)} ${
+          isOver ? 'ring-2 ring-primary ring-offset-2' : ''
+        }`}
+      >
+        <div className="mb-4">
+          <h3 className="font-semibold text-foreground">{STATUS_LABELS[status]}</h3>
+          <p className="text-sm text-muted-foreground">
+            {leads.length} leads
+          </p>
+        </div>
+        <SortableContext
+          items={leads.map((lead) => lead.id)}
+          strategy={verticalListSortingStrategy}
+        >
+          <div className="space-y-3 min-h-[500px]">
+            {leads.map((lead) => (
+              <DraggableLeadCard
+                key={lead.id}
+                lead={lead}
+                onLeadClick={onLeadClick}
+              />
+            ))}
+          </div>
+        </SortableContext>
+      </Card>
     </div>
   );
 }
@@ -94,14 +140,28 @@ export function KanbanBoard({ leads, statuses, onLeadClick, onStatusChange }: Ka
     }
 
     const activeLeadId = active.id as string;
-    const overStatus = over.id as LeadStatus;
+    const activeLead = leads.find((lead) => lead.id === activeLeadId);
     
-    // Check if we're dropping over a status column
-    if (statuses.includes(overStatus)) {
-      const activeLead = leads.find((lead) => lead.id === activeLeadId);
-      if (activeLead && activeLead.status !== overStatus) {
-        onStatusChange(activeLeadId, overStatus);
+    if (!activeLead) {
+      setActiveId(null);
+      return;
+    }
+
+    // Check if we're dropping over a status column (droppable zone)
+    let targetStatus: LeadStatus | null = null;
+    
+    if (statuses.includes(over.id as LeadStatus)) {
+      targetStatus = over.id as LeadStatus;
+    } else {
+      // If dropped over another lead, find its status
+      const overLead = leads.find((lead) => lead.id === over.id);
+      if (overLead) {
+        targetStatus = overLead.status;
       }
+    }
+    
+    if (targetStatus && activeLead.status !== targetStatus) {
+      onStatusChange(activeLeadId, targetStatus);
     }
     
     setActiveId(null);
@@ -116,35 +176,13 @@ export function KanbanBoard({ leads, statuses, onLeadClick, onStatusChange }: Ka
     >
       <div className="flex gap-4 overflow-x-auto pb-4">
         {statuses.map((status) => (
-          <div key={status} className="flex-shrink-0 w-80">
-            <SortableContext
-              id={status}
-              items={leadsByStatus[status]?.map((lead) => lead.id) || []}
-              strategy={verticalListSortingStrategy}
-            >
-              <Card className={`p-4 min-h-[600px] ${getColumnColor(status)}`}>
-                <div className="mb-4">
-                  <h3 className="font-semibold text-foreground">{STATUS_LABELS[status]}</h3>
-                  <p className="text-sm text-muted-foreground">
-                    {leadsByStatus[status]?.length || 0} leads
-                  </p>
-                </div>
-                <div 
-                  className="space-y-3 min-h-[500px]"
-                  data-status={status}
-                  style={{ position: 'relative' }}
-                >
-                  {leadsByStatus[status]?.map((lead) => (
-                    <DraggableLeadCard
-                      key={lead.id}
-                      lead={lead}
-                      onLeadClick={onLeadClick}
-                    />
-                  ))}
-                </div>
-              </Card>
-            </SortableContext>
-          </div>
+          <DroppableColumn
+            key={status}
+            status={status}
+            leads={leadsByStatus[status] || []}
+            onLeadClick={onLeadClick}
+            getColumnColor={getColumnColor}
+          />
         ))}
       </div>
       
