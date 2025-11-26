@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Plus, Filter } from "lucide-react";
+import { ArrowLeft, Plus } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Lead, HIMYT_STATUSES, LeadStatus } from "@/types/crm";
@@ -62,9 +62,6 @@ const PipelineHimyt = () => {
               </div>
             </div>
             <div className="flex gap-3">
-              <Button variant="outline" size="icon">
-                <Filter className="w-4 h-4" />
-              </Button>
               <Button className="bg-accent hover:bg-accent/90" onClick={() => navigate("/add-lead?type=himyt")}>
                 <Plus className="w-4 h-4 mr-2" />
                 Ajouter un lead

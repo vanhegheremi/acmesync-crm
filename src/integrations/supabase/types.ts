@@ -63,10 +63,12 @@ export type Database = {
           next_action: string | null
           next_action_date: string | null
           notes: string | null
+          origin: string | null
           phone: string | null
           priority: string | null
           segment: string | null
           status: string
+          temperature: string | null
           type: string
           updated_at: string
           website: string | null
@@ -81,10 +83,12 @@ export type Database = {
           next_action?: string | null
           next_action_date?: string | null
           notes?: string | null
+          origin?: string | null
           phone?: string | null
           priority?: string | null
           segment?: string | null
           status: string
+          temperature?: string | null
           type: string
           updated_at?: string
           website?: string | null
@@ -99,10 +103,12 @@ export type Database = {
           next_action?: string | null
           next_action_date?: string | null
           notes?: string | null
+          origin?: string | null
           phone?: string | null
           priority?: string | null
           segment?: string | null
           status?: string
+          temperature?: string | null
           type?: string
           updated_at?: string
           website?: string | null

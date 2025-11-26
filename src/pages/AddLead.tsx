@@ -9,7 +9,7 @@ import { ArrowLeft } from "lucide-react";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { LeadType, Priority } from "@/types/crm";
+import { LeadType, Priority, LeadOrigin, LeadTemperature, ORIGIN_LABELS, TEMPERATURE_LABELS } from "@/types/crm";
 
 const AddLead = () => {
   const navigate = useNavigate();
@@ -25,6 +25,8 @@ const AddLead = () => {
     website: "",
     segment: "",
     priority: "medium" as Priority,
+    origin: "cold_email" as LeadOrigin,
+    temperature: "cold" as LeadTemperature,
     notes: "",
   });
 
@@ -164,6 +166,46 @@ const AddLead = () => {
                       <SelectItem value="low">Basse</SelectItem>
                       <SelectItem value="medium">Moyenne</SelectItem>
                       <SelectItem value="high">Haute</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="origin">Origine du lead</Label>
+                  <Select
+                    value={formData.origin}
+                    onValueChange={(value: LeadOrigin) => setFormData({ ...formData, origin: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(ORIGIN_LABELS).map(([key, label]) => (
+                        <SelectItem key={key} value={key}>
+                          {label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="temperature">Température</Label>
+                  <Select
+                    value={formData.temperature}
+                    onValueChange={(value: LeadTemperature) => setFormData({ ...formData, temperature: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(TEMPERATURE_LABELS).map(([key, label]) => (
+                        <SelectItem key={key} value={key}>
+                          {label}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>

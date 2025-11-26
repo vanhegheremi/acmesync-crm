@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import { ShoppingBag, Factory, Plus, Calendar } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
@@ -64,9 +65,16 @@ const Index = () => {
               <p className="text-muted-foreground mt-1">HIMYT x TRYON</p>
             </div>
             <div className="flex gap-3">
-              <Button onClick={() => navigate("/today")} variant="outline">
+              <Button onClick={() => navigate("/today")} variant="outline" className="relative">
                 <Calendar className="w-4 h-4 mr-2" />
                 Aujourd'hui
+                {((tryonStats?.actionNeeded || 0) + (himytStats?.actionNeeded || 0) > 0) && (
+                  <Badge 
+                    className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 bg-warning text-warning-foreground"
+                  >
+                    {(tryonStats?.actionNeeded || 0) + (himytStats?.actionNeeded || 0)}
+                  </Badge>
+                )}
               </Button>
               <Button onClick={() => navigate("/activities")} variant="outline">
                 Activités

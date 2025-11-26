@@ -9,6 +9,9 @@ export type LeadStatus = TryonStatus | HimytStatus;
 
 export type ActivityType = 'email' | 'call' | 'linkedin' | 'demo' | 'other';
 
+export type LeadOrigin = 'cold_email' | 'cold_call' | 'newsletter' | 'linkedin' | 'recommendation' | 'website' | 'other';
+export type LeadTemperature = 'hot' | 'warm' | 'cold';
+
 export interface Lead {
   id: string;
   type: LeadType;
@@ -24,6 +27,8 @@ export interface Lead {
   next_action: string | null;
   next_action_date: string | null;
   priority: Priority;
+  origin: LeadOrigin | null;
+  temperature: LeadTemperature | null;
   created_at: string;
   updated_at: string;
 }
@@ -65,4 +70,20 @@ export const ACTIVITY_TYPE_LABELS: Record<ActivityType, string> = {
   linkedin: 'LinkedIn',
   demo: 'Démo',
   other: 'Autre',
+};
+
+export const ORIGIN_LABELS: Record<LeadOrigin, string> = {
+  cold_email: 'Cold email',
+  cold_call: 'Cold call',
+  newsletter: 'Ouverture newsletter',
+  linkedin: 'LinkedIn',
+  recommendation: 'Recommandation',
+  website: 'Site web',
+  other: 'Autre',
+};
+
+export const TEMPERATURE_LABELS: Record<LeadTemperature, string> = {
+  hot: 'Chaud',
+  warm: 'Tiède',
+  cold: 'Froid',
 };

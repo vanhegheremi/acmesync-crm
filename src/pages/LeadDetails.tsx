@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ArrowLeft, Building2, User, Mail, Phone, Globe, Calendar, Pencil } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Lead, Activity, STATUS_LABELS, PRIORITY_LABELS, TRYON_STATUSES, HIMYT_STATUSES, LeadStatus, ACTIVITY_TYPE_LABELS } from "@/types/crm";
+import { Lead, Activity, STATUS_LABELS, PRIORITY_LABELS, TRYON_STATUSES, HIMYT_STATUSES, LeadStatus, ACTIVITY_TYPE_LABELS, ORIGIN_LABELS, TEMPERATURE_LABELS, LeadOrigin, LeadTemperature } from "@/types/crm";
 import { useState } from "react";
 import { toast } from "sonner";
 import { formatDistanceToNow, format } from "date-fns";
@@ -110,9 +110,17 @@ const LeadDetails = () => {
             </Button>
             <div>
               <h1 className="text-2xl font-bold text-foreground">{lead.company_name}</h1>
-              <p className="text-sm text-muted-foreground">
-                {lead.type === "tryon" ? "TRYON" : "HIMYT"}
-              </p>
+              <div className="flex items-center gap-2 mt-1">
+                <p className="text-sm text-muted-foreground">
+                  {lead.type === "tryon" ? "TRYON" : "HIMYT"}
+                </p>
+                {lead.contact_name && (
+                  <>
+                    <span className="text-muted-foreground">•</span>
+                    <p className="text-sm text-muted-foreground">{lead.contact_name}</p>
+                  </>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -127,12 +135,6 @@ const LeadDetails = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid md:grid-cols-2 gap-4">
-                  {lead.contact_name && (
-                    <div className="flex items-center gap-3">
-                      <User className="w-4 h-4 text-muted-foreground" />
-                      <span>{lead.contact_name}</span>
-                    </div>
-                  )}
                   {lead.email && (
                     <div className="flex items-center gap-3">
                       <Mail className="w-4 h-4 text-muted-foreground" />
@@ -159,10 +161,76 @@ const LeadDetails = () => {
                   )}
                 </div>
 
-                {lead.segment && (
+                <div className="grid md:grid-cols-2 gap-4">
+                  {lead.segment && (
+                    <div>
+                      <Label className="text-xs text-muted-foreground">Segment</Label>
+                      <Badge variant="outline" className="mt-1">{lead.segment}</Badge>
+                    </div>
+                  )}
+
+                  {lead.origin && (
+                    <div>
+                      <Label className="text-xs text-muted-foreground">Origine du lead</Label>
+                      <Select value={lead.origin} onValueChange={(value: LeadOrigin) => updateLeadMutation.mutate({ origin: value })}>
+                        <SelectTrigger className="mt-1">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Object.entries(ORIGIN_LABELS).map(([key, label]) => (
+                            <SelectItem key={key} value={key}>
+                              {label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+                </div>
+
+                {lead.temperature && (
                   <div>
-                    <Label className="text-xs text-muted-foreground">Segment</Label>
-                    <Badge variant="outline" className="mt-1">{lead.segment}</Badge>
+                    <Label className="text-xs text-muted-foreground">Température du lead</Label>
+                    <div className="mt-1">
+                      <Select value={lead.temperature} onValueChange={(value: LeadTemperature) => updateLeadMutation.mutate({ temperature: value })}>
+                        <SelectTrigger>
+                          <SelectValue>
+                            <div className="flex items-center gap-2">
+                              <Badge 
+                                className={
+                                  lead.temperature === 'hot' 
+                                    ? 'bg-red-500 hover:bg-red-600 text-white' 
+                                    : lead.temperature === 'warm'
+                                    ? 'bg-yellow-500 hover:bg-yellow-600 text-white'
+                                    : 'bg-gray-400 hover:bg-gray-500 text-white'
+                                }
+                              >
+                                {TEMPERATURE_LABELS[lead.temperature]}
+                              </Badge>
+                            </div>
+                          </SelectValue>
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Object.entries(TEMPERATURE_LABELS).map(([key, label]) => (
+                            <SelectItem key={key} value={key}>
+                              <div className="flex items-center gap-2">
+                                <Badge 
+                                  className={
+                                    key === 'hot' 
+                                      ? 'bg-red-500 text-white' 
+                                      : key === 'warm'
+                                      ? 'bg-yellow-500 text-white'
+                                      : 'bg-gray-400 text-white'
+                                  }
+                                >
+                                  {label}
+                                </Badge>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
                 )}
 
