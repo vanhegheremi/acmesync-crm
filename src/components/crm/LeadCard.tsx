@@ -1,8 +1,8 @@
 import { Lead, PRIORITY_LABELS } from "@/types/crm";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Building2, User, Calendar } from "lucide-react";
-import { formatDistanceToNow } from "date-fns";
+import { Building2, User, Calendar, Bell } from "lucide-react";
+import { formatDistanceToNow, isToday } from "date-fns";
 import { fr } from "date-fns/locale";
 
 interface LeadCardProps {
@@ -24,12 +24,25 @@ export function LeadCard({ lead, onClick }: LeadCardProps) {
     }
   };
 
+  const hasActionToday = lead.next_action_date && isToday(new Date(lead.next_action_date));
+
   return (
     <Card
-      className="p-4 cursor-pointer hover:shadow-md transition-all bg-card border-border"
+      className={`p-4 cursor-pointer hover:shadow-md transition-all bg-card ${
+        hasActionToday 
+          ? 'border-2 border-accent shadow-lg ring-2 ring-accent/20' 
+          : 'border-border'
+      }`}
       onClick={onClick}
     >
       <div className="space-y-3">
+        {hasActionToday && (
+          <Badge className="bg-accent text-accent-foreground w-full justify-center gap-2 py-1.5 animate-pulse">
+            <Bell className="w-3 h-3" />
+            ACTION AUJOURD'HUI
+          </Badge>
+        )}
+        
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-center gap-2 min-w-0">
             <Building2 className="w-4 h-4 text-primary flex-shrink-0" />
