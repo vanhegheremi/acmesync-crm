@@ -1,13 +1,15 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Plus, Filter } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Lead, HIMYT_STATUSES } from "@/types/crm";
+import { Lead, HIMYT_STATUSES, LeadStatus } from "@/types/crm";
 import { KanbanBoard } from "@/components/crm/KanbanBoard";
+import { toast } from "sonner";
 
 const PipelineHimyt = () => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const { data: leads = [], isLoading } = useQuery({
     queryKey: ["leads-himyt"],
@@ -22,6 +24,28 @@ const PipelineHimyt = () => {
       return data as Lead[];
     },
   });
+
+  const updateStatusMutation = useMutation({
+    mutationFn: async ({ leadId, newStatus }: { leadId: string; newStatus: LeadStatus }) => {
+      const { error } = await supabase
+        .from("leads")
+        .update({ status: newStatus, updated_at: new Date().toISOString() })
+        .eq("id", leadId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["leads-himyt"] });
+      toast.success("Statut mis à jour");
+    },
+    onError: () => {
+      toast.error("Erreur lors de la mise à jour du statut");
+    },
+  });
+
+  const handleStatusChange = (leadId: string, newStatus: LeadStatus) => {
+    updateStatusMutation.mutate({ leadId, newStatus });
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -60,6 +84,7 @@ const PipelineHimyt = () => {
             leads={leads}
             statuses={HIMYT_STATUSES}
             onLeadClick={(lead) => navigate(`/lead/${lead.id}`)}
+            onStatusChange={handleStatusChange}
           />
         )}
       </main>
