@@ -11,9 +11,9 @@ const Index = () => {
   const { data: tryonStats } = useQuery({
     queryKey: ["tryon-stats"],
     queryFn: async () => {
-      const today = new Date().toISOString().split('T')[0];
+      const today = new Date().toISOString().split("T")[0];
       const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
-      
+
       const { count: totalCount } = await supabase
         .from("leads")
         .select("*", { count: "exact", head: true })
@@ -34,9 +34,9 @@ const Index = () => {
   const { data: himytStats } = useQuery({
     queryKey: ["himyt-stats"],
     queryFn: async () => {
-      const today = new Date().toISOString().split('T')[0];
+      const today = new Date().toISOString().split("T")[0];
       const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
-      
+
       const { count: totalCount } = await supabase
         .from("leads")
         .select("*", { count: "exact", head: true })
@@ -78,7 +78,10 @@ const Index = () => {
 
       <main className="container mx-auto px-6 py-12">
         <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-          <Card className="hover:shadow-lg transition-all cursor-pointer bg-card border-border" onClick={() => navigate("/pipeline/tryon")}>
+          <Card
+            className="hover:shadow-lg transition-all cursor-pointer bg-card border-border"
+            onClick={() => navigate("/pipeline/tryon")}
+          >
             <CardHeader className="pb-4">
               <div className="flex items-center gap-3 mb-2">
                 <div className="p-3 rounded-lg bg-primary/10">
@@ -86,9 +89,7 @@ const Index = () => {
                 </div>
                 <CardTitle className="text-2xl text-foreground">Pipeline TRYON</CardTitle>
               </div>
-              <CardDescription className="text-base">
-                Eshops / Mode / Shopify
-              </CardDescription>
+              <CardDescription className="text-base">Eshops / Mode / Shopify</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
@@ -101,14 +102,23 @@ const Index = () => {
                   <span className="text-2xl font-bold text-warning">{tryonStats?.actionNeeded || 0}</span>
                 </div>
               </div>
-              <Button className="w-full mt-4" onClick={(e) => { e.stopPropagation(); navigate("/add-lead?type=tryon"); }}>
+              <Button
+                className="w-full mt-4"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate("/add-lead?type=tryon");
+                }}
+              >
                 <Plus className="w-4 h-4 mr-2" />
                 Ajouter un lead TRYON
               </Button>
             </CardContent>
           </Card>
 
-          <Card className="hover:shadow-lg transition-all cursor-pointer bg-card border-border" onClick={() => navigate("/pipeline/himyt")}>
+          <Card
+            className="hover:shadow-lg transition-all cursor-pointer bg-card border-border"
+            onClick={() => navigate("/pipeline/himyt")}
+          >
             <CardHeader className="pb-4">
               <div className="flex items-center gap-3 mb-2">
                 <div className="p-3 rounded-lg bg-accent/10">
@@ -116,9 +126,7 @@ const Index = () => {
                 </div>
                 <CardTitle className="text-2xl text-foreground">Pipeline HIMYT</CardTitle>
               </div>
-              <CardDescription className="text-base">
-                PME Industrielles + Automatisation IA
-              </CardDescription>
+              <CardDescription className="text-base">Dev, Automation, IA</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
@@ -131,7 +139,13 @@ const Index = () => {
                   <span className="text-2xl font-bold text-warning">{himytStats?.actionNeeded || 0}</span>
                 </div>
               </div>
-              <Button className="w-full mt-4 bg-accent hover:bg-accent/90" onClick={(e) => { e.stopPropagation(); navigate("/add-lead?type=himyt"); }}>
+              <Button
+                className="w-full mt-4 bg-accent hover:bg-accent/90"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate("/add-lead?type=himyt");
+                }}
+              >
                 <Plus className="w-4 h-4 mr-2" />
                 Ajouter un lead HIMYT
               </Button>
