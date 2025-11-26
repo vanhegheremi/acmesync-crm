@@ -21,6 +21,7 @@ export interface Lead {
   status: LeadStatus;
   notes: string | null;
   last_contact_date: string | null;
+  next_action: string | null;
   next_action_date: string | null;
   priority: Priority;
   created_at: string;
