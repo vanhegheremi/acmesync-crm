@@ -1,12 +1,144 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useNavigate } from "react-router-dom";
+import { ShoppingBag, Factory, Plus, Calendar } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 const Index = () => {
+  const navigate = useNavigate();
+
+  const { data: tryonStats } = useQuery({
+    queryKey: ["tryon-stats"],
+    queryFn: async () => {
+      const today = new Date().toISOString().split('T')[0];
+      const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+      
+      const { count: totalCount } = await supabase
+        .from("leads")
+        .select("*", { count: "exact", head: true })
+        .eq("type", "tryon")
+        .neq("status", "won")
+        .neq("status", "lost");
+
+      const { count: actionCount } = await supabase
+        .from("leads")
+        .select("*", { count: "exact", head: true })
+        .eq("type", "tryon")
+        .or(`next_action_date.eq.${today},last_contact_date.lt.${sevenDaysAgo}`);
+
+      return { total: totalCount || 0, actionNeeded: actionCount || 0 };
+    },
+  });
+
+  const { data: himytStats } = useQuery({
+    queryKey: ["himyt-stats"],
+    queryFn: async () => {
+      const today = new Date().toISOString().split('T')[0];
+      const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+      
+      const { count: totalCount } = await supabase
+        .from("leads")
+        .select("*", { count: "exact", head: true })
+        .eq("type", "himyt")
+        .neq("status", "won")
+        .neq("status", "lost");
+
+      const { count: actionCount } = await supabase
+        .from("leads")
+        .select("*", { count: "exact", head: true })
+        .eq("type", "himyt")
+        .or(`next_action_date.eq.${today},last_contact_date.lt.${sevenDaysAgo}`);
+
+      return { total: totalCount || 0, actionNeeded: actionCount || 0 };
+    },
+  });
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
+    <div className="min-h-screen bg-background">
+      <header className="border-b border-border bg-card">
+        <div className="container mx-auto px-6 py-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-foreground">CRM Pipeline</h1>
+              <p className="text-muted-foreground mt-1">HIMYT x TRYON</p>
+            </div>
+            <div className="flex gap-3">
+              <Button onClick={() => navigate("/today")} variant="outline">
+                <Calendar className="w-4 h-4 mr-2" />
+                Aujourd'hui
+              </Button>
+              <Button onClick={() => navigate("/activities")} variant="outline">
+                Activités
+              </Button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <main className="container mx-auto px-6 py-12">
+        <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+          <Card className="hover:shadow-lg transition-all cursor-pointer bg-card border-border" onClick={() => navigate("/pipeline/tryon")}>
+            <CardHeader className="pb-4">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="p-3 rounded-lg bg-primary/10">
+                  <ShoppingBag className="w-6 h-6 text-primary" />
+                </div>
+                <CardTitle className="text-2xl text-foreground">Pipeline TRYON</CardTitle>
+              </div>
+              <CardDescription className="text-base">
+                Eshops / Mode / Shopify
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                <div className="flex justify-between items-center p-3 rounded-lg bg-muted/50">
+                  <span className="text-sm text-muted-foreground">Leads en cours</span>
+                  <span className="text-2xl font-bold text-foreground">{tryonStats?.total || 0}</span>
+                </div>
+                <div className="flex justify-between items-center p-3 rounded-lg bg-warning/10">
+                  <span className="text-sm text-muted-foreground">À relancer aujourd'hui</span>
+                  <span className="text-2xl font-bold text-warning">{tryonStats?.actionNeeded || 0}</span>
+                </div>
+              </div>
+              <Button className="w-full mt-4" onClick={(e) => { e.stopPropagation(); navigate("/add-lead?type=tryon"); }}>
+                <Plus className="w-4 h-4 mr-2" />
+                Ajouter un lead TRYON
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card className="hover:shadow-lg transition-all cursor-pointer bg-card border-border" onClick={() => navigate("/pipeline/himyt")}>
+            <CardHeader className="pb-4">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="p-3 rounded-lg bg-accent/10">
+                  <Factory className="w-6 h-6 text-accent" />
+                </div>
+                <CardTitle className="text-2xl text-foreground">Pipeline HIMYT</CardTitle>
+              </div>
+              <CardDescription className="text-base">
+                PME Industrielles + Automatisation IA
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                <div className="flex justify-between items-center p-3 rounded-lg bg-muted/50">
+                  <span className="text-sm text-muted-foreground">Leads en cours</span>
+                  <span className="text-2xl font-bold text-foreground">{himytStats?.total || 0}</span>
+                </div>
+                <div className="flex justify-between items-center p-3 rounded-lg bg-warning/10">
+                  <span className="text-sm text-muted-foreground">À relancer aujourd'hui</span>
+                  <span className="text-2xl font-bold text-warning">{himytStats?.actionNeeded || 0}</span>
+                </div>
+              </div>
+              <Button className="w-full mt-4 bg-accent hover:bg-accent/90" onClick={(e) => { e.stopPropagation(); navigate("/add-lead?type=himyt"); }}>
+                <Plus className="w-4 h-4 mr-2" />
+                Ajouter un lead HIMYT
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </main>
     </div>
   );
 };
