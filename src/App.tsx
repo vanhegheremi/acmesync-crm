@@ -3,6 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Layout } from "@/components/Layout";
 import Index from "./pages/Index";
 import PipelineTryon from "./pages/PipelineTryon";
 import PipelineHimyt from "./pages/PipelineHimyt";
@@ -20,16 +21,18 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/pipeline/tryon" element={<PipelineTryon />} />
-          <Route path="/pipeline/himyt" element={<PipelineHimyt />} />
-          <Route path="/add-lead" element={<AddLead />} />
-          <Route path="/lead/:id" element={<LeadDetails />} />
-          <Route path="/activities" element={<Activities />} />
-          <Route path="/today" element={<Today />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <Layout>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/pipeline/tryon" element={<PipelineTryon />} />
+            <Route path="/pipeline/himyt" element={<PipelineHimyt />} />
+            <Route path="/add-lead" element={<AddLead />} />
+            <Route path="/lead/:id" element={<LeadDetails />} />
+            <Route path="/activities" element={<Activities />} />
+            <Route path="/today" element={<Today />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </Layout>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

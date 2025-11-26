@@ -57,34 +57,12 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b border-border bg-card">
-        <div className="container mx-auto px-6 py-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-foreground">CRM Pipeline</h1>
-              <p className="text-muted-foreground mt-1">HIMYT x TRYON</p>
-            </div>
-            <div className="flex gap-3">
-              <Button onClick={() => navigate("/today")} variant="outline" className="relative">
-                <Calendar className="w-4 h-4 mr-2" />
-                Aujourd'hui
-                {((tryonStats?.actionNeeded || 0) + (himytStats?.actionNeeded || 0) > 0) && (
-                  <Badge 
-                    className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 bg-warning text-warning-foreground"
-                  >
-                    {(tryonStats?.actionNeeded || 0) + (himytStats?.actionNeeded || 0)}
-                  </Badge>
-                )}
-              </Button>
-              <Button onClick={() => navigate("/activities")} variant="outline">
-                Activités
-              </Button>
-            </div>
-          </div>
+      <div className="container mx-auto px-6 py-8">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-foreground">CRM Pipeline</h1>
+          <p className="text-muted-foreground mt-1">HIMYT x TRYON</p>
         </div>
-      </header>
 
-      <main className="container mx-auto px-6 py-12">
         <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
           <Card
             className="hover:shadow-lg transition-all cursor-pointer bg-card border-border"
@@ -160,7 +138,7 @@ const Index = () => {
             </CardContent>
           </Card>
         </div>
-      </main>
+      </div>
     </div>
   );
 };
