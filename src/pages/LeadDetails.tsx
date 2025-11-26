@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Building2, User, Mail, Phone, Globe, Calendar } from "lucide-react";
+import { ArrowLeft, Building2, User, Mail, Phone, Globe, Calendar, Pencil } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Lead, Activity, STATUS_LABELS, PRIORITY_LABELS, TRYON_STATUSES, HIMYT_STATUSES, LeadStatus, ACTIVITY_TYPE_LABELS } from "@/types/crm";
@@ -267,13 +267,25 @@ const LeadDetails = () => {
                   ) : (
                     activities.map((activity) => (
                       <div key={activity.id} className="border-l-2 border-primary pl-4 pb-4 last:pb-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <Badge variant="outline" className="text-xs">
-                            {ACTIVITY_TYPE_LABELS[activity.type as keyof typeof ACTIVITY_TYPE_LABELS]}
-                          </Badge>
-                          <span className="text-xs text-muted-foreground">
-                            {format(new Date(activity.date), "d MMM yyyy", { locale: fr })}
-                          </span>
+                        <div className="flex items-center justify-between mb-1">
+                          <div className="flex items-center gap-2">
+                            <Badge variant="outline" className="text-xs">
+                              {ACTIVITY_TYPE_LABELS[activity.type as keyof typeof ACTIVITY_TYPE_LABELS]}
+                            </Badge>
+                            <span className="text-xs text-muted-foreground">
+                              {format(new Date(activity.date), "d MMM yyyy", { locale: fr })}
+                            </span>
+                          </div>
+                          <AddActivityDialog 
+                            leadId={id!} 
+                            activity={activity}
+                            mode="edit"
+                            trigger={
+                              <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
+                                <Pencil className="h-3 w-3" />
+                              </Button>
+                            }
+                          />
                         </div>
                         <p className="text-sm mb-1">{activity.content}</p>
                         {activity.done_by && (
