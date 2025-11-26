@@ -12,57 +12,131 @@ import { fr } from "date-fns/locale";
 const Today = () => {
   const navigate = useNavigate();
 
-  const { data: actionNeededLeads = [], isLoading } = useQuery({
-    queryKey: ["action-needed-leads"],
-    queryFn: async () => {
-      const today = new Date().toISOString().split('T')[0];
-      const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+  const today = new Date().toISOString().split('T')[0];
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
-      // Leads with action scheduled for today
-      const { data: todayLeads, error: error1 } = await supabase
+  const { data: scheduledLeads = [], isLoading: isLoadingScheduled } = useQuery({
+    queryKey: ["scheduled-leads"],
+    queryFn: async () => {
+      const { data, error } = await supabase
         .from("leads")
         .select("*")
         .eq("next_action_date", today)
         .neq("status", "won")
         .neq("status", "lost");
 
-      if (error1) throw error1;
+      if (error) throw error;
+      return data as Lead[];
+    },
+  });
 
-      // Leads not contacted in last 7 days
-      const { data: staleLeads, error: error2 } = await supabase
+  const { data: staleLeads = [], isLoading: isLoadingStale } = useQuery({
+    queryKey: ["stale-leads"],
+    queryFn: async () => {
+      const { data, error } = await supabase
         .from("leads")
         .select("*")
         .lt("last_contact_date", sevenDaysAgo)
         .neq("status", "won")
         .neq("status", "lost");
 
-      if (error2) throw error2;
-
-      // Combine and deduplicate
-      const allLeads = [...(todayLeads || []), ...(staleLeads || [])];
-      const uniqueLeads = Array.from(
-        new Map(allLeads.map((lead) => [lead.id, lead])).values()
-      );
-
-      return uniqueLeads as Lead[];
+      if (error) throw error;
+      return data as Lead[];
     },
   });
 
-  const getActionReason = (lead: Lead) => {
-    const today = new Date().toISOString().split('T')[0];
-    if (lead.next_action_date === today) {
-      return "Action programmée aujourd'hui";
-    }
-    if (lead.last_contact_date) {
-      const daysSinceContact = Math.floor(
-        (Date.now() - new Date(lead.last_contact_date).getTime()) / (1000 * 60 * 60 * 24)
-      );
-      if (daysSinceContact >= 7) {
-        return `Pas de contact depuis ${daysSinceContact} jours`;
-      }
-    }
-    return "Action requise";
-  };
+  const { data: interestedTryonLeads = [], isLoading: isLoadingInterested } = useQuery({
+    queryKey: ["interested-tryon-leads"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("leads")
+        .select("*")
+        .eq("type", "tryon")
+        .eq("status", "interested")
+        .neq("status", "won")
+        .neq("status", "lost");
+
+      if (error) throw error;
+      return data as Lead[];
+    },
+  });
+
+  const { data: problemDetectedHimytLeads = [], isLoading: isLoadingProblem } = useQuery({
+    queryKey: ["problem-detected-himyt-leads"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("leads")
+        .select("*")
+        .eq("type", "himyt")
+        .eq("status", "problem_detected")
+        .neq("status", "won")
+        .neq("status", "lost");
+
+      if (error) throw error;
+      return data as Lead[];
+    },
+  });
+
+  const { data: highPriorityLeads = [], isLoading: isLoadingHighPriority } = useQuery({
+    queryKey: ["high-priority-leads"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("leads")
+        .select("*")
+        .eq("priority", "high")
+        .lt("last_contact_date", sevenDaysAgo)
+        .neq("status", "won")
+        .neq("status", "lost");
+
+      if (error) throw error;
+      return data as Lead[];
+    },
+  });
+
+  const isLoading = isLoadingScheduled || isLoadingStale || isLoadingInterested || isLoadingProblem || isLoadingHighPriority;
+
+  const totalLeads = scheduledLeads.length + staleLeads.length + interestedTryonLeads.length + 
+                     problemDetectedHimytLeads.length + highPriorityLeads.length;
+
+  const renderLeadCard = (lead: Lead) => (
+    <Card
+      key={lead.id}
+      className="hover:shadow-md transition-all cursor-pointer"
+      onClick={() => navigate(`/lead/${lead.id}`)}
+    >
+      <CardContent className="p-6">
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex-1">
+            <div className="flex items-center gap-3 mb-2">
+              <h3 className="font-semibold text-foreground">{lead.company_name}</h3>
+              <Badge className={lead.type === 'tryon' ? 'bg-primary' : 'bg-accent'}>
+                {lead.type === 'tryon' ? 'TRYON' : 'HIMYT'}
+              </Badge>
+              <Badge variant="outline">{STATUS_LABELS[lead.status]}</Badge>
+            </div>
+
+            {lead.contact_name && (
+              <p className="text-sm text-muted-foreground mb-2">{lead.contact_name}</p>
+            )}
+
+            {lead.next_action && (
+              <p className="text-sm mb-2">📋 {lead.next_action}</p>
+            )}
+
+            {lead.last_contact_date && (
+              <p className="text-xs text-muted-foreground">
+                Dernier contact:{" "}
+                {formatDistanceToNow(new Date(lead.last_contact_date), {
+                  addSuffix: true,
+                  locale: fr,
+                })}
+              </p>
+            )}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
 
   return (
     <div className="min-h-screen bg-background">
@@ -85,68 +159,68 @@ const Today = () => {
           <div className="flex items-center justify-center h-64">
             <p className="text-muted-foreground">Chargement...</p>
           </div>
-        ) : actionNeededLeads.length === 0 ? (
+        ) : totalLeads === 0 ? (
           <Card>
             <CardContent className="py-12 text-center">
               <p className="text-muted-foreground">✅ Aucune action en attente pour aujourd'hui !</p>
             </CardContent>
           </Card>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-8">
             <div className="flex items-center gap-2 text-warning mb-4">
               <AlertCircle className="w-5 h-5" />
-              <span className="font-semibold">{actionNeededLeads.length} leads nécessitent votre attention</span>
+              <span className="font-semibold">{totalLeads} leads nécessitent votre attention</span>
             </div>
 
-            {actionNeededLeads.map((lead) => (
-              <Card
-                key={lead.id}
-                className="hover:shadow-md transition-all cursor-pointer"
-                onClick={() => navigate(`/lead/${lead.id}`)}
-              >
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h3 className="font-semibold text-foreground">{lead.company_name}</h3>
-                        <Badge className={lead.type === 'tryon' ? 'bg-primary' : 'bg-accent'}>
-                          {lead.type === 'tryon' ? 'TRYON' : 'HIMYT'}
-                        </Badge>
-                        <Badge variant="outline">{STATUS_LABELS[lead.status]}</Badge>
-                      </div>
+            {scheduledLeads.length > 0 && (
+              <div className="space-y-3">
+                <h2 className="text-lg font-semibold flex items-center gap-2">
+                  📅 Actions programmées aujourd'hui
+                  <Badge variant="secondary">{scheduledLeads.length}</Badge>
+                </h2>
+                {scheduledLeads.map((lead) => renderLeadCard(lead))}
+              </div>
+            )}
 
-                      {lead.contact_name && (
-                        <p className="text-sm text-muted-foreground mb-2">{lead.contact_name}</p>
-                      )}
+            {staleLeads.length > 0 && (
+              <div className="space-y-3">
+                <h2 className="text-lg font-semibold flex items-center gap-2">
+                  ⏰ Sans contact depuis 7+ jours
+                  <Badge variant="secondary">{staleLeads.length}</Badge>
+                </h2>
+                {staleLeads.map((lead) => renderLeadCard(lead))}
+              </div>
+            )}
 
-                      <div className="flex items-center gap-2 text-sm">
-                        <AlertCircle className="w-4 h-4 text-warning" />
-                        <span className="text-warning font-medium">{getActionReason(lead)}</span>
-                      </div>
+            {interestedTryonLeads.length > 0 && (
+              <div className="space-y-3">
+                <h2 className="text-lg font-semibold flex items-center gap-2">
+                  🎯 TRYON intéressés - Démo à programmer
+                  <Badge variant="secondary">{interestedTryonLeads.length}</Badge>
+                </h2>
+                {interestedTryonLeads.map((lead) => renderLeadCard(lead))}
+              </div>
+            )}
 
-                      {lead.last_contact_date && (
-                        <p className="text-xs text-muted-foreground mt-2">
-                          Dernier contact:{" "}
-                          {formatDistanceToNow(new Date(lead.last_contact_date), {
-                            addSuffix: true,
-                            locale: fr,
-                          })}
-                        </p>
-                      )}
-                    </div>
+            {problemDetectedHimytLeads.length > 0 && (
+              <div className="space-y-3">
+                <h2 className="text-lg font-semibold flex items-center gap-2">
+                  🔍 HIMYT problème détecté - Discovery call à planifier
+                  <Badge variant="secondary">{problemDetectedHimytLeads.length}</Badge>
+                </h2>
+                {problemDetectedHimytLeads.map((lead) => renderLeadCard(lead))}
+              </div>
+            )}
 
-                    <div className="flex flex-col gap-2">
-                      <Button size="sm" onClick={(e) => { e.stopPropagation(); /* TODO: Open activity dialog */ }}>
-                        Relancer
-                      </Button>
-                      <Button size="sm" variant="outline" onClick={(e) => { e.stopPropagation(); /* TODO: Schedule action */ }}>
-                        Programmer
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+            {highPriorityLeads.length > 0 && (
+              <div className="space-y-3">
+                <h2 className="text-lg font-semibold flex items-center gap-2">
+                  🚨 Priorité haute non contactés
+                  <Badge variant="secondary">{highPriorityLeads.length}</Badge>
+                </h2>
+                {highPriorityLeads.map((lead) => renderLeadCard(lead))}
+              </div>
+            )}
           </div>
         )}
       </main>

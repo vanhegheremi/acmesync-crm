@@ -6,14 +6,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Building2, User, Mail, Phone, Globe, Calendar, Plus } from "lucide-react";
+import { ArrowLeft, Building2, User, Mail, Phone, Globe, Calendar } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Lead, Activity, STATUS_LABELS, PRIORITY_LABELS, TRYON_STATUSES, HIMYT_STATUSES, LeadStatus } from "@/types/crm";
+import { Lead, Activity, STATUS_LABELS, PRIORITY_LABELS, TRYON_STATUSES, HIMYT_STATUSES, LeadStatus, ACTIVITY_TYPE_LABELS } from "@/types/crm";
 import { useState } from "react";
 import { toast } from "sonner";
-import { formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow, format } from "date-fns";
 import { fr } from "date-fns/locale";
+import AddActivityDialog from "@/components/crm/AddActivityDialog";
 
 const LeadDetails = () => {
   const navigate = useNavigate();
@@ -21,6 +22,7 @@ const LeadDetails = () => {
   const queryClient = useQueryClient();
 
   const [notes, setNotes] = useState("");
+  const [nextAction, setNextAction] = useState("");
   const [nextActionDate, setNextActionDate] = useState("");
 
   const { data: lead, isLoading } = useQuery({
@@ -34,6 +36,7 @@ const LeadDetails = () => {
 
       if (error) throw error;
       setNotes(data.notes || "");
+      setNextAction(data.next_action || "");
       setNextActionDate(data.next_action_date?.split('T')[0] || "");
       return data as Lead;
     },
@@ -76,8 +79,11 @@ const LeadDetails = () => {
     updateLeadMutation.mutate({ notes });
   };
 
-  const handleSaveNextActionDate = () => {
-    updateLeadMutation.mutate({ next_action_date: nextActionDate });
+  const handleSaveNextAction = () => {
+    updateLeadMutation.mutate({ 
+      next_action: nextAction,
+      next_action_date: nextActionDate 
+    });
   };
 
   const handleStatusChange = (status: LeadStatus) => {
@@ -117,7 +123,7 @@ const LeadDetails = () => {
           <div className="lg:col-span-2 space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Informations</CardTitle>
+                <CardTitle>Informations générales</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid md:grid-cols-2 gap-4">
@@ -175,21 +181,54 @@ const LeadDetails = () => {
                     </SelectContent>
                   </Select>
                 </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Suivi commercial</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {lead.last_contact_date && (
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Dernière action</Label>
+                    <p className="mt-1 text-sm">
+                      {format(new Date(lead.last_contact_date), "d MMMM yyyy", { locale: fr })}
+                      <span className="text-muted-foreground ml-2">
+                        ({formatDistanceToNow(new Date(lead.last_contact_date), {
+                          addSuffix: true,
+                          locale: fr,
+                        })})
+                      </span>
+                    </p>
+                  </div>
+                )}
 
                 <div>
-                  <Label htmlFor="next_action_date">Prochaine action</Label>
-                  <div className="flex gap-2 mt-1">
-                    <Input
-                      id="next_action_date"
-                      type="date"
-                      value={nextActionDate}
-                      onChange={(e) => setNextActionDate(e.target.value)}
-                    />
-                    <Button onClick={handleSaveNextActionDate} size="sm">
-                      Enregistrer
-                    </Button>
-                  </div>
+                  <Label htmlFor="next_action">Prochaine action</Label>
+                  <Input
+                    id="next_action"
+                    value={nextAction}
+                    onChange={(e) => setNextAction(e.target.value)}
+                    placeholder="Ex: Envoyer démo, rappeler le client..."
+                    className="mt-1"
+                  />
                 </div>
+
+                <div>
+                  <Label htmlFor="next_action_date">Date prochaine action</Label>
+                  <Input
+                    id="next_action_date"
+                    type="date"
+                    value={nextActionDate}
+                    onChange={(e) => setNextActionDate(e.target.value)}
+                    className="mt-1"
+                  />
+                </div>
+
+                <Button onClick={handleSaveNextAction} size="sm">
+                  Enregistrer le suivi
+                </Button>
               </CardContent>
             </Card>
 
@@ -215,33 +254,31 @@ const LeadDetails = () => {
             <Card>
               <CardHeader>
                 <div className="flex items-center justify-between">
-                  <CardTitle>Activités</CardTitle>
-                  <Button size="sm" variant="outline">
-                    <Plus className="w-4 h-4" />
-                  </Button>
+                  <CardTitle>Historique des activités</CardTitle>
+                  <AddActivityDialog leadId={lead.id} />
                 </div>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   {activities.length === 0 ? (
                     <p className="text-sm text-muted-foreground text-center py-4">
-                      Aucune activité
+                      Aucune activité enregistrée
                     </p>
                   ) : (
                     activities.map((activity) => (
-                      <div key={activity.id} className="border-l-2 border-primary pl-4 pb-4">
+                      <div key={activity.id} className="border-l-2 border-primary pl-4 pb-4 last:pb-0">
                         <div className="flex items-center gap-2 mb-1">
                           <Badge variant="outline" className="text-xs">
-                            {activity.type}
+                            {ACTIVITY_TYPE_LABELS[activity.type as keyof typeof ACTIVITY_TYPE_LABELS]}
                           </Badge>
                           <span className="text-xs text-muted-foreground">
-                            {formatDistanceToNow(new Date(activity.date), {
-                              addSuffix: true,
-                              locale: fr,
-                            })}
+                            {format(new Date(activity.date), "d MMM yyyy", { locale: fr })}
                           </span>
                         </div>
-                        <p className="text-sm">{activity.content}</p>
+                        <p className="text-sm mb-1">{activity.content}</p>
+                        {activity.done_by && (
+                          <p className="text-xs text-muted-foreground">Par {activity.done_by}</p>
+                        )}
                       </div>
                     ))
                   )}
