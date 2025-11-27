@@ -40,6 +40,7 @@ export interface Activity {
   type: ActivityType;
   content: string;
   done_by: string | null;
+  completed: boolean;
   created_at: string;
 }
 
