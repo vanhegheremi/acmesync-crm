@@ -170,6 +170,71 @@ const LeadDetails = () => {
       <main className="container mx-auto px-6 py-8">
         <div className="grid lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
+            <Card className="border-l-4 border-l-primary bg-accent/5">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Calendar className="w-5 h-5 text-primary" />
+                  Suivi commercial
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {lead.last_contact_date && (
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Dernière action</Label>
+                    <p className="mt-1 text-sm">
+                      {format(new Date(lead.last_contact_date), "d MMMM yyyy", { locale: fr })}
+                      <span className="text-muted-foreground ml-2">
+                        ({formatDistanceToNow(new Date(lead.last_contact_date), {
+                          addSuffix: true,
+                          locale: fr,
+                        })})
+                      </span>
+                    </p>
+                  </div>
+                )}
+
+                <div>
+                  <Label htmlFor="next_action" className="text-sm font-semibold">Prochaine action</Label>
+                  {!nextAction && (
+                    <p className="mt-1 text-sm text-muted-foreground italic">Aucune action programmée</p>
+                  )}
+                  <Input
+                    id="next_action"
+                    value={nextAction}
+                    onChange={(e) => setNextAction(e.target.value)}
+                    placeholder="Ex: Envoyer démo, rappeler le client..."
+                    className="mt-1"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="next_action_date">Date prochaine action</Label>
+                  <Input
+                    id="next_action_date"
+                    type="date"
+                    value={nextActionDate}
+                    onChange={(e) => setNextActionDate(e.target.value)}
+                    className="mt-1"
+                  />
+                </div>
+
+                <div className="flex gap-2">
+                  <Button onClick={handleSaveNextAction} size="sm" variant="outline">
+                    Enregistrer le suivi
+                  </Button>
+                  {nextAction && (
+                    <Button 
+                      onClick={() => completeNextActionMutation.mutate()} 
+                      size="sm"
+                      disabled={completeNextActionMutation.isPending}
+                    >
+                      Tâche effectuée
+                    </Button>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
             <Card>
               <CardHeader>
                 <CardTitle>Informations générales</CardTitle>
@@ -289,65 +354,6 @@ const LeadDetails = () => {
                       ))}
                     </SelectContent>
                   </Select>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Suivi commercial</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {lead.last_contact_date && (
-                  <div>
-                    <Label className="text-xs text-muted-foreground">Dernière action</Label>
-                    <p className="mt-1 text-sm">
-                      {format(new Date(lead.last_contact_date), "d MMMM yyyy", { locale: fr })}
-                      <span className="text-muted-foreground ml-2">
-                        ({formatDistanceToNow(new Date(lead.last_contact_date), {
-                          addSuffix: true,
-                          locale: fr,
-                        })})
-                      </span>
-                    </p>
-                  </div>
-                )}
-
-                <div>
-                  <Label htmlFor="next_action">Prochaine action</Label>
-                  <Input
-                    id="next_action"
-                    value={nextAction}
-                    onChange={(e) => setNextAction(e.target.value)}
-                    placeholder="Ex: Envoyer démo, rappeler le client..."
-                    className="mt-1"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="next_action_date">Date prochaine action</Label>
-                  <Input
-                    id="next_action_date"
-                    type="date"
-                    value={nextActionDate}
-                    onChange={(e) => setNextActionDate(e.target.value)}
-                    className="mt-1"
-                  />
-                </div>
-
-                <div className="flex gap-2">
-                  <Button onClick={handleSaveNextAction} size="sm" variant="outline">
-                    Enregistrer le suivi
-                  </Button>
-                  {nextAction && (
-                    <Button 
-                      onClick={() => completeNextActionMutation.mutate()} 
-                      size="sm"
-                      disabled={completeNextActionMutation.isPending}
-                    >
-                      Tâche effectuée
-                    </Button>
-                  )}
                 </div>
               </CardContent>
             </Card>
