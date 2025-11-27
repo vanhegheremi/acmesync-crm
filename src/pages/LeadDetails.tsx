@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ArrowLeft, Building2, User, Mail, Phone, Globe, Calendar, Pencil } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Lead, Activity, STATUS_LABELS, PRIORITY_LABELS, TRYON_STATUSES, HIMYT_STATUSES, LeadStatus, ACTIVITY_TYPE_LABELS, ORIGIN_LABELS, TEMPERATURE_LABELS, LeadOrigin, LeadTemperature } from "@/types/crm";
+import { Lead, Activity, STATUS_LABELS, PRIORITY_LABELS, TRYON_STATUSES, HIMYT_STATUSES, LeadStatus, ACTIVITY_TYPE_LABELS, ORIGIN_LABELS, TEMPERATURE_LABELS, LeadOrigin, LeadTemperature, Priority } from "@/types/crm";
 import { useState } from "react";
 import { toast } from "sonner";
 import { formatDistanceToNow, format } from "date-fns";
@@ -88,6 +88,10 @@ const LeadDetails = () => {
 
   const handleStatusChange = (status: LeadStatus) => {
     updateLeadMutation.mutate({ status });
+  };
+
+  const handlePriorityChange = (priority: Priority) => {
+    updateLeadMutation.mutate({ priority });
   };
 
   if (isLoading || !lead) {
@@ -372,8 +376,19 @@ const LeadDetails = () => {
               </CardHeader>
               <CardContent className="space-y-3 text-sm">
                 <div>
-                  <p className="text-muted-foreground">Priorité</p>
-                  <Badge className="mt-1">{PRIORITY_LABELS[lead.priority]}</Badge>
+                  <Label className="text-xs text-muted-foreground">Priorité</Label>
+                  <Select value={lead.priority} onValueChange={handlePriorityChange}>
+                    <SelectTrigger className="mt-1">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(PRIORITY_LABELS).map(([key, label]) => (
+                        <SelectItem key={key} value={key}>
+                          {label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 {lead.last_contact_date && (
                   <div>
