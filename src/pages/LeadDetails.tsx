@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Building2, User, Mail, Phone, Globe, Calendar, Pencil } from "lucide-react";
+import { ArrowLeft, Building2, User, Mail, Phone, Globe, Calendar, Pencil, Trash2 } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Lead, Activity, STATUS_LABELS, PRIORITY_LABELS, TRYON_STATUSES, HIMYT_STATUSES, LeadStatus, ACTIVITY_TYPE_LABELS, ORIGIN_LABELS, TEMPERATURE_LABELS, LeadOrigin, LeadTemperature, Priority } from "@/types/crm";
@@ -15,6 +15,17 @@ import { toast } from "sonner";
 import { formatDistanceToNow, format } from "date-fns";
 import { fr } from "date-fns/locale";
 import AddActivityDialog from "@/components/crm/AddActivityDialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 const LeadDetails = () => {
   const navigate = useNavigate();
@@ -109,6 +120,24 @@ const LeadDetails = () => {
       setNextAction("");
       setNextActionDate("");
       toast.success("Tâche effectuée et ajoutée à l'historique");
+    },
+  });
+
+  const deleteActivityMutation = useMutation({
+    mutationFn: async (activityId: string) => {
+      const { error } = await supabase
+        .from("activities")
+        .delete()
+        .eq("id", activityId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["activities", id] });
+      toast.success("Activité supprimée");
+    },
+    onError: () => {
+      toast.error("Erreur lors de la suppression");
     },
   });
 
@@ -402,16 +431,42 @@ const LeadDetails = () => {
                               {format(new Date(activity.date), "d MMM yyyy", { locale: fr })}
                             </span>
                           </div>
-                          <AddActivityDialog 
-                            leadId={id!} 
-                            activity={activity}
-                            mode="edit"
-                            trigger={
-                              <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
-                                <Pencil className="h-3 w-3" />
-                              </Button>
-                            }
-                          />
+                          <div className="flex items-center gap-1">
+                            <AddActivityDialog 
+                              leadId={id!} 
+                              activity={activity}
+                              mode="edit"
+                              trigger={
+                                <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
+                                  <Pencil className="h-3 w-3" />
+                                </Button>
+                              }
+                            />
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button variant="ghost" size="sm" className="h-7 w-7 p-0 hover:text-destructive">
+                                  <Trash2 className="h-3 w-3" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Supprimer l'activité</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Êtes-vous sûr de vouloir supprimer cette activité ? Cette action est irréversible.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Annuler</AlertDialogCancel>
+                                  <AlertDialogAction 
+                                    onClick={() => deleteActivityMutation.mutate(activity.id)}
+                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                  >
+                                    Supprimer
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </div>
                         </div>
                         <p className={`text-sm mb-1 ${activity.completed ? 'line-through' : ''}`}>{activity.content}</p>
                         {activity.done_by && (
