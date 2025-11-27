@@ -73,18 +73,42 @@ const LeadDetails = () => {
     },
   });
 
-  const toggleActivityMutation = useMutation({
-    mutationFn: async ({ activityId, completed }: { activityId: string; completed: boolean }) => {
-      const { error } = await supabase
+  const completeNextActionMutation = useMutation({
+    mutationFn: async () => {
+      if (!nextAction) throw new Error("Aucune action à compléter");
+      
+      // Create completed activity
+      const { error: activityError } = await supabase
         .from("activities")
-        .update({ completed })
-        .eq("id", activityId);
+        .insert({
+          lead_id: id!,
+          type: "other",
+          content: nextAction,
+          completed: true,
+          date: new Date().toISOString(),
+          done_by: "Rémi",
+        });
 
-      if (error) throw error;
+      if (activityError) throw activityError;
+
+      // Reset next action and update last contact date
+      const { error: leadError } = await supabase
+        .from("leads")
+        .update({
+          next_action: null,
+          next_action_date: null,
+          last_contact_date: new Date().toISOString(),
+        })
+        .eq("id", id!);
+
+      if (leadError) throw leadError;
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["lead", id] });
       queryClient.invalidateQueries({ queryKey: ["activities", id] });
-      toast.success("Activité mise à jour");
+      setNextAction("");
+      setNextActionDate("");
+      toast.success("Tâche effectuée et ajoutée à l'historique");
     },
   });
 
@@ -311,9 +335,20 @@ const LeadDetails = () => {
                   />
                 </div>
 
-                <Button onClick={handleSaveNextAction} size="sm">
-                  Enregistrer le suivi
-                </Button>
+                <div className="flex gap-2">
+                  <Button onClick={handleSaveNextAction} size="sm" variant="outline">
+                    Enregistrer le suivi
+                  </Button>
+                  {nextAction && (
+                    <Button 
+                      onClick={() => completeNextActionMutation.mutate()} 
+                      size="sm"
+                      disabled={completeNextActionMutation.isPending}
+                    >
+                      Tâche effectuée
+                    </Button>
+                  )}
+                </div>
               </CardContent>
             </Card>
 
@@ -354,12 +389,6 @@ const LeadDetails = () => {
                       <div key={activity.id} className={`border-l-2 border-primary pl-4 pb-4 last:pb-0 ${activity.completed ? 'opacity-60' : ''}`}>
                         <div className="flex items-center justify-between mb-1">
                           <div className="flex items-center gap-2">
-                            <input
-                              type="checkbox"
-                              checked={activity.completed}
-                              onChange={(e) => toggleActivityMutation.mutate({ activityId: activity.id, completed: e.target.checked })}
-                              className="w-4 h-4 rounded border-gray-300 cursor-pointer accent-primary"
-                            />
                             <Badge variant="outline" className="text-xs">
                               {ACTIVITY_TYPE_LABELS[activity.type as keyof typeof ACTIVITY_TYPE_LABELS]}
                             </Badge>
