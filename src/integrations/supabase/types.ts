@@ -16,6 +16,7 @@ export type Database = {
     Tables: {
       activities: {
         Row: {
+          completed: boolean
           content: string
           created_at: string
           date: string
@@ -25,6 +26,7 @@ export type Database = {
           type: string
         }
         Insert: {
+          completed?: boolean
           content: string
           created_at?: string
           date?: string
@@ -34,6 +36,7 @@ export type Database = {
           type: string
         }
         Update: {
+          completed?: boolean
           content?: string
           created_at?: string
           date?: string

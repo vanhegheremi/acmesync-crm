@@ -63,15 +63,28 @@ const LeadDetails = () => {
       const { error } = await supabase
         .from("leads")
         .update(updates)
-        .eq("id", id);
+        .eq("id", id!);
 
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["lead", id] });
-      queryClient.invalidateQueries({ queryKey: ["leads-tryon"] });
-      queryClient.invalidateQueries({ queryKey: ["leads-himyt"] });
       toast.success("Lead mis à jour");
+    },
+  });
+
+  const toggleActivityMutation = useMutation({
+    mutationFn: async ({ activityId, completed }: { activityId: string; completed: boolean }) => {
+      const { error } = await supabase
+        .from("activities")
+        .update({ completed })
+        .eq("id", activityId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["activities", id] });
+      toast.success("Activité mise à jour");
     },
   });
 
@@ -338,9 +351,15 @@ const LeadDetails = () => {
                     </p>
                   ) : (
                     activities.map((activity) => (
-                      <div key={activity.id} className="border-l-2 border-primary pl-4 pb-4 last:pb-0">
+                      <div key={activity.id} className={`border-l-2 border-primary pl-4 pb-4 last:pb-0 ${activity.completed ? 'opacity-60' : ''}`}>
                         <div className="flex items-center justify-between mb-1">
                           <div className="flex items-center gap-2">
+                            <input
+                              type="checkbox"
+                              checked={activity.completed}
+                              onChange={(e) => toggleActivityMutation.mutate({ activityId: activity.id, completed: e.target.checked })}
+                              className="w-4 h-4 rounded border-gray-300 cursor-pointer accent-primary"
+                            />
                             <Badge variant="outline" className="text-xs">
                               {ACTIVITY_TYPE_LABELS[activity.type as keyof typeof ACTIVITY_TYPE_LABELS]}
                             </Badge>
@@ -359,7 +378,7 @@ const LeadDetails = () => {
                             }
                           />
                         </div>
-                        <p className="text-sm mb-1">{activity.content}</p>
+                        <p className={`text-sm mb-1 ${activity.completed ? 'line-through' : ''}`}>{activity.content}</p>
                         {activity.done_by && (
                           <p className="text-xs text-muted-foreground">Par {activity.done_by}</p>
                         )}
