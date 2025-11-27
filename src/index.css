@@ -53,33 +53,13 @@ All colors MUST be HSL.
 
     --radius: 0.75rem;
 
-    /* Temperature colors */
-    --temperature-cold: 214 84% 56%;
-    --temperature-cold-foreground: 0 0% 100%;
-    --temperature-warm: 45 93% 47%;
-    --temperature-warm-foreground: 0 0% 100%;
-    --temperature-hot: 25 95% 53%;
-    --temperature-hot-foreground: 0 0% 100%;
-
-    /* Priority colors */
-    --priority-high: 0 72% 51%;
-    --priority-high-foreground: 0 0% 100%;
-    --priority-medium: 45 93% 47%;
-    --priority-medium-foreground: 0 0% 100%;
-    --priority-low: 210 16% 46%;
-    --priority-low-foreground: 0 0% 100%;
-
-    /* Kanban specific colors - Harmonieux et doux */
-    --kanban-cold: 210 20% 94%;
-    --kanban-interested: 214 40% 92%;
-    --kanban-demo: 199 50% 90%;
-    --kanban-test: 171 40% 88%;
-    --kanban-won: 142 40% 88%;
-    --kanban-lost: 0 30% 92%;
-    
-    --kanban-problem-detected: 25 50% 90%;
-    --kanban-discovery-call: 199 50% 90%;
-    --kanban-proposal: 171 40% 88%;
+    /* Kanban specific colors */
+    --kanban-cold: 210 16% 96%;
+    --kanban-interested: 199 89% 95%;
+    --kanban-demo: 171 82% 94%;
+    --kanban-test: 142 71% 94%;
+    --kanban-won: 142 71% 45%;
+    --kanban-lost: 0 84% 95%;
   }
 
   .dark {
@@ -118,32 +98,12 @@ All colors MUST be HSL.
     --input: 216 34% 17%;
     --ring: 214 84% 56%;
 
-    /* Temperature colors dark mode */
-    --temperature-cold: 214 84% 56%;
-    --temperature-cold-foreground: 0 0% 100%;
-    --temperature-warm: 45 93% 47%;
-    --temperature-warm-foreground: 0 0% 100%;
-    --temperature-hot: 25 95% 53%;
-    --temperature-hot-foreground: 0 0% 100%;
-
-    /* Priority colors dark mode */
-    --priority-high: 0 72% 51%;
-    --priority-high-foreground: 0 0% 100%;
-    --priority-medium: 45 93% 47%;
-    --priority-medium-foreground: 0 0% 100%;
-    --priority-low: 215 16% 56%;
-    --priority-low-foreground: 0 0% 100%;
-
     --kanban-cold: 223 47% 11%;
-    --kanban-interested: 214 40% 18%;
-    --kanban-demo: 199 50% 16%;
-    --kanban-test: 171 40% 14%;
-    --kanban-won: 142 40% 18%;
-    --kanban-lost: 0 30% 16%;
-    
-    --kanban-problem-detected: 25 50% 16%;
-    --kanban-discovery-call: 199 50% 16%;
-    --kanban-proposal: 171 40% 14%;
+    --kanban-interested: 199 89% 15%;
+    --kanban-demo: 171 82% 14%;
+    --kanban-test: 142 71% 14%;
+    --kanban-won: 142 71% 25%;
+    --kanban-lost: 0 84% 15%;
   }
 }
 
