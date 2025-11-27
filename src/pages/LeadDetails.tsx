@@ -492,51 +492,48 @@ const LeadDetails = () => {
                   )}
                 </div>
 
-                {lead.temperature && (
-                  <div>
-                    <Label className="text-xs text-muted-foreground">Température du lead</Label>
-                    <div className="mt-1">
-                      <Select value={lead.temperature} onValueChange={(value: LeadTemperature) => updateLeadMutation.mutate({ temperature: value })}>
-                        <SelectTrigger>
-                          <SelectValue>
-                            <div className="flex items-center gap-2">
-                              <Badge 
-                                className={
-                                  lead.temperature === 'hot' 
-                                    ? 'bg-red-500 hover:bg-red-600 text-white' 
-                                    : lead.temperature === 'warm'
-                                    ? 'bg-yellow-500 hover:bg-yellow-600 text-white'
-                                    : 'bg-gray-400 hover:bg-gray-500 text-white'
-                                }
-                              >
-                                {TEMPERATURE_LABELS[lead.temperature]}
-                              </Badge>
-                            </div>
-                          </SelectValue>
-                        </SelectTrigger>
-                        <SelectContent>
-                          {Object.entries(TEMPERATURE_LABELS).map(([key, label]) => (
-                            <SelectItem key={key} value={key}>
-                              <div className="flex items-center gap-2">
-                                <Badge 
-                                  className={
-                                    key === 'hot' 
-                                      ? 'bg-red-500 text-white' 
-                                      : key === 'warm'
-                                      ? 'bg-yellow-500 text-white'
-                                      : 'bg-gray-400 text-white'
-                                  }
-                                >
-                                  {label}
-                                </Badge>
-                              </div>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground">Température du lead</Label>
+                  <div className="mt-1">
+                    <Select value={lead.temperature || ''} onValueChange={(value: LeadTemperature) => updateLeadMutation.mutate({ temperature: value })}>
+                      <SelectTrigger>
+                        <SelectValue>
+                          {lead.temperature && (
+                            <Badge 
+                              className={
+                                lead.temperature === 'hot' 
+                                  ? 'bg-temperature-hot text-temperature-hot-foreground hover:bg-temperature-hot/90' 
+                                  : lead.temperature === 'warm'
+                                  ? 'bg-temperature-warm text-temperature-warm-foreground hover:bg-temperature-warm/90'
+                                  : 'bg-temperature-cold text-temperature-cold-foreground hover:bg-temperature-cold/90'
+                              }
+                            >
+                              {TEMPERATURE_LABELS[lead.temperature]}
+                            </Badge>
+                          )}
+                          {!lead.temperature && <span className="text-muted-foreground">Sélectionner une température</span>}
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.entries(TEMPERATURE_LABELS).map(([key, label]) => (
+                          <SelectItem key={key} value={key}>
+                            <Badge 
+                              className={
+                                key === 'hot' 
+                                  ? 'bg-temperature-hot text-temperature-hot-foreground' 
+                                  : key === 'warm'
+                                  ? 'bg-temperature-warm text-temperature-warm-foreground'
+                                  : 'bg-temperature-cold text-temperature-cold-foreground'
+                              }
+                            >
+                              {label}
+                            </Badge>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
-                )}
+                </div>
 
                 <div>
                   <Label className="text-xs text-muted-foreground">Statut</Label>
@@ -657,12 +654,34 @@ const LeadDetails = () => {
                   <Label className="text-xs text-muted-foreground">Priorité</Label>
                   <Select value={lead.priority} onValueChange={handlePriorityChange}>
                     <SelectTrigger className="mt-1">
-                      <SelectValue />
+                      <SelectValue>
+                        <Badge 
+                          className={
+                            lead.priority === 'high' 
+                              ? 'bg-priority-high text-priority-high-foreground' 
+                              : lead.priority === 'medium'
+                              ? 'bg-priority-medium text-priority-medium-foreground'
+                              : 'bg-priority-low text-priority-low-foreground'
+                          }
+                        >
+                          {PRIORITY_LABELS[lead.priority]}
+                        </Badge>
+                      </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
                       {Object.entries(PRIORITY_LABELS).map(([key, label]) => (
                         <SelectItem key={key} value={key}>
-                          {label}
+                          <Badge 
+                            className={
+                              key === 'high' 
+                                ? 'bg-priority-high text-priority-high-foreground' 
+                                : key === 'medium'
+                                ? 'bg-priority-medium text-priority-medium-foreground'
+                                : 'bg-priority-low text-priority-low-foreground'
+                            }
+                          >
+                            {label}
+                          </Badge>
                         </SelectItem>
                       ))}
                     </SelectContent>

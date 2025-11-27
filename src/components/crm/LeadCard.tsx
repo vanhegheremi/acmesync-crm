@@ -14,13 +14,13 @@ export function LeadCard({ lead, onClick }: LeadCardProps) {
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case 'high':
-        return 'bg-warning text-warning-foreground';
+        return 'bg-priority-high text-priority-high-foreground';
       case 'medium':
-        return 'bg-primary/20 text-primary';
+        return 'bg-priority-medium text-priority-medium-foreground';
       case 'low':
-        return 'bg-muted text-muted-foreground';
+        return 'bg-priority-low text-priority-low-foreground';
       default:
-        return 'bg-muted text-muted-foreground';
+        return 'bg-priority-low text-priority-low-foreground';
     }
   };
 
@@ -28,29 +28,30 @@ export function LeadCard({ lead, onClick }: LeadCardProps) {
 
   return (
     <Card
-      className={`p-4 cursor-pointer hover:shadow-md transition-all bg-card ${
+      className={`p-3 md:p-4 cursor-pointer hover:shadow-md transition-all bg-card ${
         hasActionToday 
           ? 'border-2 border-accent shadow-lg ring-2 ring-accent/20' 
           : 'border-border'
       }`}
       onClick={onClick}
     >
-      <div className="space-y-3">
+      <div className="space-y-2 md:space-y-3">
         {hasActionToday && (
-          <Badge className="bg-accent text-accent-foreground w-full justify-center gap-2 py-1.5 animate-pulse">
+          <Badge className="bg-accent text-accent-foreground w-full justify-center gap-2 py-1 md:py-1.5 animate-pulse text-xs">
             <Bell className="w-3 h-3" />
-            ACTION AUJOURD'HUI
+            <span className="hidden sm:inline">ACTION AUJOURD'HUI</span>
+            <span className="sm:hidden">AUJOURD'HUI</span>
           </Badge>
         )}
         
         <div className="flex items-start justify-between gap-2">
-          <div className="flex items-center gap-2 min-w-0">
+          <div className="flex items-center gap-2 min-w-0 flex-1">
             <Building2 className="w-4 h-4 text-primary flex-shrink-0" />
             <h4 className="font-semibold text-sm truncate text-foreground">
               {lead.company_name}
             </h4>
           </div>
-          <Badge className={getPriorityColor(lead.priority)}>
+          <Badge className={`${getPriorityColor(lead.priority)} text-xs flex-shrink-0`}>
             {PRIORITY_LABELS[lead.priority]}
           </Badge>
         </div>
