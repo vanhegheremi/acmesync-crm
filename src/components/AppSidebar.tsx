@@ -1,6 +1,6 @@
 import { Home, Calendar, ShoppingBag, Factory, Plus, Activity } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
-import { useLocation } from "react-router-dom";
+import { useLocation, Link } from "react-router-dom";
 import himytLogo from "@/assets/himyt-logo.png";
 
 import {
@@ -36,14 +36,14 @@ export function AppSidebar() {
     <Sidebar className={isCollapsed ? "w-14" : "w-64"} collapsible="icon">
       <SidebarHeader className="border-b border-border p-4">
         {!isCollapsed && (
-          <div className="flex items-center gap-2">
+          <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
             <img src={himytLogo} alt="HIMYT Logo" className="h-10 w-auto" />
-          </div>
+          </Link>
         )}
         {isCollapsed && (
-          <div className="flex justify-center">
+          <Link to="/" className="flex justify-center hover:opacity-80 transition-opacity">
             <img src={himytLogo} alt="HIMYT Logo" className="h-8 w-8 object-contain" />
-          </div>
+          </Link>
         )}
       </SidebarHeader>
 
