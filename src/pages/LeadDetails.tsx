@@ -26,6 +26,24 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 
 const LeadDetails = () => {
   const navigate = useNavigate();
@@ -35,6 +53,28 @@ const LeadDetails = () => {
   const [notes, setNotes] = useState("");
   const [nextAction, setNextAction] = useState("");
   const [nextActionDate, setNextActionDate] = useState("");
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+
+  const editLeadSchema = z.object({
+    company_name: z.string().min(1, "Le nom de l'entreprise est requis"),
+    contact_name: z.string().optional(),
+    email: z.string().email("Email invalide").optional().or(z.literal("")),
+    phone: z.string().optional(),
+    website: z.string().url("URL invalide").optional().or(z.literal("")),
+    segment: z.string().optional(),
+  });
+
+  const form = useForm<z.infer<typeof editLeadSchema>>({
+    resolver: zodResolver(editLeadSchema),
+    defaultValues: {
+      company_name: "",
+      contact_name: "",
+      email: "",
+      phone: "",
+      website: "",
+      segment: "",
+    },
+  });
 
   const { data: lead, isLoading } = useQuery({
     queryKey: ["lead", id],
@@ -49,6 +89,16 @@ const LeadDetails = () => {
       setNotes(data.notes || "");
       setNextAction(data.next_action || "");
       setNextActionDate(data.next_action_date?.split('T')[0] || "");
+      
+      form.reset({
+        company_name: data.company_name,
+        contact_name: data.contact_name || "",
+        email: data.email || "",
+        phone: data.phone || "",
+        website: data.website || "",
+        segment: data.segment || "",
+      });
+      
       return data as Lead;
     },
     enabled: !!id,
@@ -160,6 +210,14 @@ const LeadDetails = () => {
     updateLeadMutation.mutate({ priority });
   };
 
+  const onSubmitEdit = (values: z.infer<typeof editLeadSchema>) => {
+    updateLeadMutation.mutate(values, {
+      onSuccess: () => {
+        setIsEditDialogOpen(false);
+      },
+    });
+  };
+
   if (isLoading || !lead) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -266,7 +324,118 @@ const LeadDetails = () => {
 
             <Card>
               <CardHeader>
-                <CardTitle>Informations générales</CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle>Informations générales</CardTitle>
+                  <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button variant="outline" size="sm">
+                        <Pencil className="w-4 h-4 mr-2" />
+                        Modifier
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-2xl">
+                      <DialogHeader>
+                        <DialogTitle>Modifier les informations</DialogTitle>
+                      </DialogHeader>
+                      <Form {...form}>
+                        <form onSubmit={form.handleSubmit(onSubmitEdit)} className="space-y-4">
+                          <FormField
+                            control={form.control}
+                            name="company_name"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Nom de l'entreprise *</FormLabel>
+                                <FormControl>
+                                  <Input {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="contact_name"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Nom du contact</FormLabel>
+                                <FormControl>
+                                  <Input {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <div className="grid md:grid-cols-2 gap-4">
+                            <FormField
+                              control={form.control}
+                              name="email"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Email</FormLabel>
+                                  <FormControl>
+                                    <Input type="email" {...field} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              control={form.control}
+                              name="phone"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Téléphone</FormLabel>
+                                  <FormControl>
+                                    <Input {...field} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+                          <FormField
+                            control={form.control}
+                            name="website"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Site web</FormLabel>
+                                <FormControl>
+                                  <Input type="url" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="segment"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Segment</FormLabel>
+                                <FormControl>
+                                  <Input {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <div className="flex justify-end gap-2">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              onClick={() => setIsEditDialogOpen(false)}
+                            >
+                              Annuler
+                            </Button>
+                            <Button type="submit" disabled={updateLeadMutation.isPending}>
+                              Enregistrer
+                            </Button>
+                          </div>
+                        </form>
+                      </Form>
+                    </DialogContent>
+                  </Dialog>
+                </div>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid md:grid-cols-2 gap-4">
