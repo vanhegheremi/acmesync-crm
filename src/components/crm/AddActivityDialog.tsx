@@ -37,18 +37,21 @@ const AddActivityDialog = ({ leadId, trigger, activity, mode = "add" }: AddActiv
   const saveActivityMutation = useMutation({
     mutationFn: async () => {
       if (mode === "edit" && activity) {
+        // For editing, preserve the original date or use specified date at noon UTC to avoid timezone shift
+        const dateValue = date ? new Date(date + 'T12:00:00Z').toISOString() : new Date().toISOString();
         const { error } = await supabase
           .from("activities")
           .update({
             type,
             content,
             done_by: doneBy || null,
-            date: new Date(date).toISOString(),
+            date: dateValue,
           })
           .eq("id", activity.id);
 
         if (error) throw error;
       } else {
+        // Use current timestamp instead of converting date string to avoid timezone issues
         const { error } = await supabase
           .from("activities")
           .insert({
@@ -56,7 +59,7 @@ const AddActivityDialog = ({ leadId, trigger, activity, mode = "add" }: AddActiv
             type,
             content,
             done_by: doneBy || null,
-            date: new Date(date).toISOString(),
+            date: new Date().toISOString(),
           });
 
         if (error) throw error;
