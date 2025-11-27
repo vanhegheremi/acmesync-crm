@@ -66,24 +66,24 @@ function DroppableColumn({ status, leads, onLeadClick, getColumnColor }: Droppab
   });
 
   return (
-    <div className="flex-shrink-0 w-80">
+    <div className="flex-shrink-0 w-full sm:w-80 min-w-[280px]">
       <Card 
         ref={setNodeRef}
-        className={`p-4 min-h-[600px] transition-colors ${getColumnColor(status)} ${
+        className={`p-3 md:p-4 min-h-[400px] md:min-h-[600px] transition-colors ${getColumnColor(status)} ${
           isOver ? 'ring-2 ring-primary ring-offset-2' : ''
         }`}
       >
-        <div className="mb-4">
-          <h3 className="font-semibold text-foreground">{STATUS_LABELS[status]}</h3>
-          <p className="text-sm text-muted-foreground">
-            {leads.length} leads
+        <div className="mb-3 md:mb-4">
+          <h3 className="font-semibold text-sm md:text-base text-foreground">{STATUS_LABELS[status]}</h3>
+          <p className="text-xs md:text-sm text-muted-foreground">
+            {leads.length} {leads.length > 1 ? 'leads' : 'lead'}
           </p>
         </div>
         <SortableContext
           items={leads.map((lead) => lead.id)}
           strategy={verticalListSortingStrategy}
         >
-          <div className="space-y-3 min-h-[500px]">
+          <div className="space-y-2 md:space-y-3 min-h-[300px] md:min-h-[500px]">
             {leads.map((lead) => (
               <DraggableLeadCard
                 key={lead.id}
@@ -122,9 +122,18 @@ export function KanbanBoard({ leads, statuses, onLeadClick, onStatusChange }: Ka
   );
 
   const getColumnColor = (status: LeadStatus) => {
-    if (status === 'won') return 'bg-success/10 border-success/20';
-    if (status === 'lost') return 'bg-destructive/10 border-destructive/20';
-    return 'bg-muted/50 border-border';
+    const colorMap: Record<LeadStatus, string> = {
+      'cold': 'bg-kanban-cold border-border',
+      'interested': 'bg-kanban-interested border-border',
+      'demo': 'bg-kanban-demo border-border',
+      'test': 'bg-kanban-test border-border',
+      'problem_detected': 'bg-kanban-problem-detected border-border',
+      'discovery_call': 'bg-kanban-discovery-call border-border',
+      'proposal': 'bg-kanban-proposal border-border',
+      'won': 'bg-kanban-won border-success/30',
+      'lost': 'bg-kanban-lost border-destructive/30',
+    };
+    return colorMap[status] || 'bg-muted/50 border-border';
   };
 
   const handleDragStart = (event: DragStartEvent) => {
@@ -174,7 +183,7 @@ export function KanbanBoard({ leads, statuses, onLeadClick, onStatusChange }: Ka
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <div className="flex gap-4 overflow-x-auto pb-4">
+      <div className="flex gap-3 md:gap-4 overflow-x-auto pb-4 px-1">
         {statuses.map((status) => (
           <DroppableColumn
             key={status}
