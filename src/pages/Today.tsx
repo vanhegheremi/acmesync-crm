@@ -41,7 +41,11 @@ const Today = () => {
         .neq("status", "lost");
 
       if (error) throw error;
-      return data as Lead[];
+      // Exclure les leads qui ont déjà une action future planifiée
+      return (data as Lead[]).filter(lead => {
+        if (!lead.next_action_date) return true;
+        return new Date(lead.next_action_date) <= new Date(today);
+      });
     },
   });
 
