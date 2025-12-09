@@ -22,11 +22,29 @@ const Index = () => {
         .neq("status", "won")
         .neq("status", "lost");
 
-      const { count: actionCount } = await supabase
+      // Get leads with action today
+      const { count: actionTodayCount } = await supabase
         .from("leads")
         .select("*", { count: "exact", head: true })
         .eq("type", "tryon")
-        .or(`next_action_date.eq.${today},last_contact_date.lt.${sevenDaysAgo}`);
+        .eq("next_action_date", today)
+        .neq("status", "won")
+        .neq("status", "lost");
+
+      // Get stale leads (7+ days without contact) but exclude those with future actions
+      const { data: staleLeadsData } = await supabase
+        .from("leads")
+        .select("*")
+        .eq("type", "tryon")
+        .lt("last_contact_date", sevenDaysAgo)
+        .neq("status", "won")
+        .neq("status", "lost");
+
+      // Filter out leads with future actions
+      const staleCount = (staleLeadsData || []).filter(lead => {
+        if (!lead.next_action_date) return true;
+        return new Date(lead.next_action_date) <= new Date(today);
+      }).length;
 
       const { count: overdueCount } = await supabase
         .from("leads")
@@ -36,7 +54,11 @@ const Index = () => {
         .neq("status", "won")
         .neq("status", "lost");
 
-      return { total: totalCount || 0, actionNeeded: actionCount || 0, overdue: overdueCount || 0 };
+      return { 
+        total: totalCount || 0, 
+        actionNeeded: (actionTodayCount || 0) + staleCount, 
+        overdue: overdueCount || 0 
+      };
     },
   });
 
@@ -53,11 +75,29 @@ const Index = () => {
         .neq("status", "won")
         .neq("status", "lost");
 
-      const { count: actionCount } = await supabase
+      // Get leads with action today
+      const { count: actionTodayCount } = await supabase
         .from("leads")
         .select("*", { count: "exact", head: true })
         .eq("type", "himyt")
-        .or(`next_action_date.eq.${today},last_contact_date.lt.${sevenDaysAgo}`);
+        .eq("next_action_date", today)
+        .neq("status", "won")
+        .neq("status", "lost");
+
+      // Get stale leads (7+ days without contact) but exclude those with future actions
+      const { data: staleLeadsData } = await supabase
+        .from("leads")
+        .select("*")
+        .eq("type", "himyt")
+        .lt("last_contact_date", sevenDaysAgo)
+        .neq("status", "won")
+        .neq("status", "lost");
+
+      // Filter out leads with future actions
+      const staleCount = (staleLeadsData || []).filter(lead => {
+        if (!lead.next_action_date) return true;
+        return new Date(lead.next_action_date) <= new Date(today);
+      }).length;
 
       const { count: overdueCount } = await supabase
         .from("leads")
@@ -67,7 +107,11 @@ const Index = () => {
         .neq("status", "won")
         .neq("status", "lost");
 
-      return { total: totalCount || 0, actionNeeded: actionCount || 0, overdue: overdueCount || 0 };
+      return { 
+        total: totalCount || 0, 
+        actionNeeded: (actionTodayCount || 0) + staleCount, 
+        overdue: overdueCount || 0 
+      };
     },
   });
 
