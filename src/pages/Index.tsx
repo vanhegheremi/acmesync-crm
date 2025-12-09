@@ -99,12 +99,24 @@ const Index = () => {
                   <span className="text-sm text-muted-foreground">Leads en cours</span>
                   <span className="text-2xl font-bold text-foreground">{tryonStats?.total || 0}</span>
                 </div>
-                <div className="flex justify-between items-center p-3 rounded-lg bg-warning/10">
+                <div 
+                  className="flex justify-between items-center p-3 rounded-lg bg-warning/10 cursor-pointer hover:bg-warning/20 transition-colors"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate("/today");
+                  }}
+                >
                   <span className="text-sm text-muted-foreground">À relancer aujourd'hui</span>
                   <span className="text-2xl font-bold text-warning">{tryonStats?.actionNeeded || 0}</span>
                 </div>
                 {(tryonStats?.overdue ?? 0) > 0 && (
-                  <div className="flex justify-between items-center p-3 rounded-lg bg-destructive/10 animate-pulse">
+                  <div 
+                    className="flex justify-between items-center p-3 rounded-lg bg-destructive/10 animate-pulse cursor-pointer hover:bg-destructive/20 transition-colors"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate("/today");
+                    }}
+                  >
                     <span className="text-sm text-destructive flex items-center gap-2">
                       <AlertTriangle className="w-4 h-4" />
                       En retard
@@ -145,12 +157,24 @@ const Index = () => {
                   <span className="text-sm text-muted-foreground">Leads en cours</span>
                   <span className="text-2xl font-bold text-foreground">{himytStats?.total || 0}</span>
                 </div>
-                <div className="flex justify-between items-center p-3 rounded-lg bg-warning/10">
+                <div 
+                  className="flex justify-between items-center p-3 rounded-lg bg-warning/10 cursor-pointer hover:bg-warning/20 transition-colors"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate("/today");
+                  }}
+                >
                   <span className="text-sm text-muted-foreground">À relancer aujourd'hui</span>
                   <span className="text-2xl font-bold text-warning">{himytStats?.actionNeeded || 0}</span>
                 </div>
                 {(himytStats?.overdue ?? 0) > 0 && (
-                  <div className="flex justify-between items-center p-3 rounded-lg bg-destructive/10 animate-pulse">
+                  <div 
+                    className="flex justify-between items-center p-3 rounded-lg bg-destructive/10 animate-pulse cursor-pointer hover:bg-destructive/20 transition-colors"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate("/today");
+                    }}
+                  >
                     <span className="text-sm text-destructive flex items-center gap-2">
                       <AlertTriangle className="w-4 h-4" />
                       En retard
