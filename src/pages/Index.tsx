@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
-import { ShoppingBag, Factory, Plus, Calendar } from "lucide-react";
+import { ShoppingBag, Factory, Plus, Calendar, AlertTriangle } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -28,7 +28,15 @@ const Index = () => {
         .eq("type", "tryon")
         .or(`next_action_date.eq.${today},last_contact_date.lt.${sevenDaysAgo}`);
 
-      return { total: totalCount || 0, actionNeeded: actionCount || 0 };
+      const { count: overdueCount } = await supabase
+        .from("leads")
+        .select("*", { count: "exact", head: true })
+        .eq("type", "tryon")
+        .lt("next_action_date", today)
+        .neq("status", "won")
+        .neq("status", "lost");
+
+      return { total: totalCount || 0, actionNeeded: actionCount || 0, overdue: overdueCount || 0 };
     },
   });
 
@@ -51,7 +59,15 @@ const Index = () => {
         .eq("type", "himyt")
         .or(`next_action_date.eq.${today},last_contact_date.lt.${sevenDaysAgo}`);
 
-      return { total: totalCount || 0, actionNeeded: actionCount || 0 };
+      const { count: overdueCount } = await supabase
+        .from("leads")
+        .select("*", { count: "exact", head: true })
+        .eq("type", "himyt")
+        .lt("next_action_date", today)
+        .neq("status", "won")
+        .neq("status", "lost");
+
+      return { total: totalCount || 0, actionNeeded: actionCount || 0, overdue: overdueCount || 0 };
     },
   });
 
@@ -87,6 +103,15 @@ const Index = () => {
                   <span className="text-sm text-muted-foreground">À relancer aujourd'hui</span>
                   <span className="text-2xl font-bold text-warning">{tryonStats?.actionNeeded || 0}</span>
                 </div>
+                {(tryonStats?.overdue ?? 0) > 0 && (
+                  <div className="flex justify-between items-center p-3 rounded-lg bg-destructive/10 animate-pulse">
+                    <span className="text-sm text-destructive flex items-center gap-2">
+                      <AlertTriangle className="w-4 h-4" />
+                      En retard
+                    </span>
+                    <span className="text-2xl font-bold text-destructive">{tryonStats?.overdue || 0}</span>
+                  </div>
+                )}
               </div>
               <Button
                 className="w-full mt-4"
@@ -124,6 +149,15 @@ const Index = () => {
                   <span className="text-sm text-muted-foreground">À relancer aujourd'hui</span>
                   <span className="text-2xl font-bold text-warning">{himytStats?.actionNeeded || 0}</span>
                 </div>
+                {(himytStats?.overdue ?? 0) > 0 && (
+                  <div className="flex justify-between items-center p-3 rounded-lg bg-destructive/10 animate-pulse">
+                    <span className="text-sm text-destructive flex items-center gap-2">
+                      <AlertTriangle className="w-4 h-4" />
+                      En retard
+                    </span>
+                    <span className="text-2xl font-bold text-destructive">{himytStats?.overdue || 0}</span>
+                  </div>
+                )}
               </div>
               <Button
                 className="w-full mt-4 bg-accent hover:bg-accent/90"
