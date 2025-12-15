@@ -7,7 +7,7 @@ export type HimytStatus = 'cold' | 'problem_detected' | 'discovery_call' | 'prop
 
 export type LeadStatus = TryonStatus | HimytStatus;
 
-export type ActivityType = 'email' | 'call' | 'linkedin' | 'demo' | 'other';
+export type ActivityType = 'email' | 'call' | 'linkedin' | 'demo' | 'instagram' | 'whatsapp' | 'other';
 
 export type LeadOrigin = 'cold_email' | 'cold_call' | 'newsletter' | 'linkedin' | 'recommendation' | 'website' | 'other';
 export type LeadTemperature = 'hot' | 'warm' | 'cold';
@@ -70,6 +70,8 @@ export const ACTIVITY_TYPE_LABELS: Record<ActivityType, string> = {
   call: 'Appel',
   linkedin: 'LinkedIn',
   demo: 'Démo',
+  instagram: 'Message Insta',
+  whatsapp: 'Message Whatsapp',
   other: 'Autre',
 };
 
