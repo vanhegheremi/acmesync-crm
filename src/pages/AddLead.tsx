@@ -10,6 +10,7 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { LeadType, Priority, LeadOrigin, LeadTemperature, ORIGIN_LABELS, TEMPERATURE_LABELS } from "@/types/crm";
+import { isDemoModeActive } from "@/hooks/useDemoMode";
 
 const AddLead = () => {
   const navigate = useNavigate();
@@ -34,6 +35,11 @@ const AddLead = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isDemoModeActive()) {
+      toast.info("Mode démo — les leads créés ne sont pas sauvegardés");
+      navigate(formData.type === "tryon" ? "/pipeline/tryon" : "/pipeline/himyt");
+      return;
+    }
     setIsSubmitting(true);
 
     try {

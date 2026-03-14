@@ -9,6 +9,7 @@ import { ActivityType, ACTIVITY_TYPE_LABELS, Activity } from "@/types/crm";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { isDemoModeActive } from "@/hooks/useDemoMode";
 
 interface AddActivityDialogProps {
   leadId: string;
@@ -36,6 +37,7 @@ const AddActivityDialog = ({ leadId, trigger, activity, mode = "add" }: AddActiv
 
   const saveActivityMutation = useMutation({
     mutationFn: async () => {
+      if (isDemoModeActive()) return;
       if (mode === "edit" && activity) {
         // For editing, preserve the original date or use specified date at noon UTC to avoid timezone shift
         const dateValue = date ? new Date(date + 'T12:00:00Z').toISOString() : new Date().toISOString();
@@ -66,6 +68,11 @@ const AddActivityDialog = ({ leadId, trigger, activity, mode = "add" }: AddActiv
       }
     },
     onSuccess: () => {
+      if (isDemoModeActive()) {
+        toast.info("Mode démo — modification non sauvegardée");
+        setOpen(false);
+        return;
+      }
       queryClient.invalidateQueries({ queryKey: ["activities", leadId] });
       queryClient.invalidateQueries({ queryKey: ["lead", leadId] });
       toast.success(mode === "edit" ? "Activité modifiée" : "Activité ajoutée");
