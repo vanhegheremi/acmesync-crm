@@ -7,10 +7,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft } from "lucide-react";
 import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { LeadType, Priority, LeadOrigin, LeadTemperature, ORIGIN_LABELS, TEMPERATURE_LABELS } from "@/types/crm";
-import { isDemoModeActive } from "@/hooks/useDemoMode";
 
 const AddLead = () => {
   const navigate = useNavigate();
@@ -31,33 +29,10 @@ const AddLead = () => {
     notes: "",
   });
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (isDemoModeActive()) {
-      toast.info("Mode démo — les leads créés ne sont pas sauvegardés");
-      navigate(formData.type === "tryon" ? "/pipeline/tryon" : "/pipeline/himyt");
-      return;
-    }
-    setIsSubmitting(true);
-
-    try {
-      const { error } = await supabase.from("leads").insert({
-        ...formData,
-        status: "cold",
-      });
-
-      if (error) throw error;
-
-      toast.success("Lead créé avec succès !");
-      navigate(formData.type === "tryon" ? "/pipeline/tryon" : "/pipeline/himyt");
-    } catch (error) {
-      console.error("Error creating lead:", error);
-      toast.error("Erreur lors de la création du lead");
-    } finally {
-      setIsSubmitting(false);
-    }
+    toast.info("Données de démo — lead non sauvegardé");
+    navigate(formData.type === "tryon" ? "/pipeline/tryon" : "/pipeline/himyt");
   };
 
   return (

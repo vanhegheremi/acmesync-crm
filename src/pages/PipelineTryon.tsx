@@ -1,60 +1,13 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Plus } from "lucide-react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { Lead, TRYON_STATUSES, LeadStatus } from "@/types/crm";
 import { KanbanBoard } from "@/components/crm/KanbanBoard";
-import { toast } from "sonner";
-import { isDemoModeActive } from "@/hooks/useDemoMode";
 import { DEMO_TRYON_LEADS } from "@/data/demoData";
 
 const PipelineTryon = () => {
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const isDemo = isDemoModeActive();
-
-  const { data: leads = [], isLoading } = useQuery({
-    queryKey: ["leads-tryon"],
-    queryFn: async () => {
-      if (isDemo) return DEMO_TRYON_LEADS;
-      const { data, error } = await supabase
-        .from("leads")
-        .select("*")
-        .eq("type", "tryon")
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      return data as Lead[];
-    },
-  });
-
-  const updateStatusMutation = useMutation({
-    mutationFn: async ({ leadId, newStatus }: { leadId: string; newStatus: LeadStatus }) => {
-      if (isDemo) return;
-      const { error } = await supabase
-        .from("leads")
-        .update({ status: newStatus, updated_at: new Date().toISOString() })
-        .eq("id", leadId);
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      if (isDemo) {
-        toast.info("Mode démo — modification non sauvegardée");
-        return;
-      }
-      queryClient.invalidateQueries({ queryKey: ["leads-tryon"] });
-      toast.success("Statut mis à jour");
-    },
-    onError: () => {
-      toast.error("Erreur lors de la mise à jour du statut");
-    },
-  });
-
-  const handleStatusChange = (leadId: string, newStatus: LeadStatus) => {
-    updateStatusMutation.mutate({ leadId, newStatus });
-  };
+  const leads: Lead[] = DEMO_TRYON_LEADS;
 
   return (
     <div className="min-h-screen bg-background">
@@ -81,18 +34,12 @@ const PipelineTryon = () => {
       </header>
 
       <main className="container mx-auto px-6 py-6 max-w-full overflow-hidden">
-        {isLoading ? (
-          <div className="flex items-center justify-center h-64">
-            <p className="text-muted-foreground">Chargement...</p>
-          </div>
-        ) : (
-          <KanbanBoard
-            leads={leads}
-            statuses={TRYON_STATUSES}
-            onLeadClick={(lead) => navigate(`/lead/${lead.id}`)}
-            onStatusChange={handleStatusChange}
-          />
-        )}
+        <KanbanBoard
+          leads={leads}
+          statuses={TRYON_STATUSES}
+          onLeadClick={(lead) => navigate(`/lead/${lead.id}`)}
+          onStatusChange={handleStatusChange}
+        />
       </main>
     </div>
   );

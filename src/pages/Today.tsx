@@ -3,124 +3,42 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, AlertCircle } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { Lead, STATUS_LABELS } from "@/types/crm";
 import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
-import { isDemoModeActive } from "@/hooks/useDemoMode";
 import { DEMO_ALL_LEADS } from "@/data/demoData";
 
 const Today = () => {
   const navigate = useNavigate();
-  const isDemo = isDemoModeActive();
 
   const today = new Date().toISOString().split('T')[0];
   const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
-  const { data: scheduledLeads = [], isLoading: isLoadingScheduled } = useQuery({
-    queryKey: ["scheduled-leads"],
-    queryFn: async () => {
-      if (isDemo) return DEMO_ALL_LEADS.filter(
-        (l) => l.next_action_date?.split("T")[0] === today && l.status !== "won" && l.status !== "lost"
-      );
-      const { data, error } = await supabase
-        .from("leads")
-        .select("*")
-        .eq("next_action_date", today)
-        .neq("status", "won")
-        .neq("status", "lost");
+  const scheduledLeads = DEMO_ALL_LEADS.filter(
+    (l) => l.next_action_date?.split("T")[0] === today && l.status !== "won" && l.status !== "lost"
+  );
 
-      if (error) throw error;
-      return data as Lead[];
-    },
+  const staleLeads = DEMO_ALL_LEADS.filter((l) => {
+    if (l.status === "won" || l.status === "lost") return false;
+    if (!l.last_contact_date || l.last_contact_date >= sevenDaysAgo) return false;
+    if (!l.next_action_date) return true;
+    return l.next_action_date <= today;
   });
 
-  const { data: staleLeads = [], isLoading: isLoadingStale } = useQuery({
-    queryKey: ["stale-leads"],
-    queryFn: async () => {
-      if (isDemo) return DEMO_ALL_LEADS.filter((l) => {
-        if (l.status === "won" || l.status === "lost") return false;
-        if (!l.last_contact_date || l.last_contact_date >= sevenDaysAgo) return false;
-        if (!l.next_action_date) return true;
-        return l.next_action_date <= today;
-      });
-      const { data, error } = await supabase
-        .from("leads")
-        .select("*")
-        .lt("last_contact_date", sevenDaysAgo)
-        .neq("status", "won")
-        .neq("status", "lost");
+  const interestedTryonLeads = DEMO_ALL_LEADS.filter(
+    (l) => l.type === "tryon" && l.status === "interested"
+  );
 
-      if (error) throw error;
-      return (data as Lead[]).filter(lead => {
-        if (!lead.next_action_date) return true;
-        return new Date(lead.next_action_date) <= new Date(today);
-      });
-    },
+  const problemDetectedHimytLeads = DEMO_ALL_LEADS.filter(
+    (l) => l.type === "himyt" && l.status === "problem_detected"
+  );
+
+  const highPriorityLeads = DEMO_ALL_LEADS.filter((l) => {
+    if (l.status === "won" || l.status === "lost") return false;
+    if (l.priority !== "high") return false;
+    if (!l.last_contact_date || l.last_contact_date >= sevenDaysAgo) return false;
+    return true;
   });
-
-  const { data: interestedTryonLeads = [], isLoading: isLoadingInterested } = useQuery({
-    queryKey: ["interested-tryon-leads"],
-    queryFn: async () => {
-      if (isDemo) return DEMO_ALL_LEADS.filter(
-        (l) => l.type === "tryon" && l.status === "interested"
-      );
-      const { data, error } = await supabase
-        .from("leads")
-        .select("*")
-        .eq("type", "tryon")
-        .eq("status", "interested")
-        .neq("status", "won")
-        .neq("status", "lost");
-
-      if (error) throw error;
-      return data as Lead[];
-    },
-  });
-
-  const { data: problemDetectedHimytLeads = [], isLoading: isLoadingProblem } = useQuery({
-    queryKey: ["problem-detected-himyt-leads"],
-    queryFn: async () => {
-      if (isDemo) return DEMO_ALL_LEADS.filter(
-        (l) => l.type === "himyt" && l.status === "problem_detected"
-      );
-      const { data, error } = await supabase
-        .from("leads")
-        .select("*")
-        .eq("type", "himyt")
-        .eq("status", "problem_detected")
-        .neq("status", "won")
-        .neq("status", "lost");
-
-      if (error) throw error;
-      return data as Lead[];
-    },
-  });
-
-  const { data: highPriorityLeads = [], isLoading: isLoadingHighPriority } = useQuery({
-    queryKey: ["high-priority-leads"],
-    queryFn: async () => {
-      if (isDemo) return DEMO_ALL_LEADS.filter((l) => {
-        if (l.status === "won" || l.status === "lost") return false;
-        if (l.priority !== "high") return false;
-        if (!l.last_contact_date || l.last_contact_date >= sevenDaysAgo) return false;
-        return true;
-      });
-      const { data, error } = await supabase
-        .from("leads")
-        .select("*")
-        .eq("priority", "high")
-        .lt("last_contact_date", sevenDaysAgo)
-        .neq("status", "won")
-        .neq("status", "lost");
-
-      if (error) throw error;
-      return data as Lead[];
-    },
-  });
-
-  const isLoading = isLoadingScheduled || isLoadingStale || isLoadingInterested || isLoadingProblem || isLoadingHighPriority;
 
   const totalLeads = scheduledLeads.length + staleLeads.length + interestedTryonLeads.length + 
                      problemDetectedHimytLeads.length + highPriorityLeads.length;
@@ -182,11 +100,7 @@ const Today = () => {
       </header>
 
       <main className="container mx-auto px-6 py-8 max-w-4xl">
-        {isLoading ? (
-          <div className="flex items-center justify-center h-64">
-            <p className="text-muted-foreground">Chargement...</p>
-          </div>
-        ) : totalLeads === 0 ? (
+        {totalLeads === 0 ? (
           <Card>
             <CardContent className="py-12 text-center">
               <p className="text-muted-foreground">✅ Aucune action en attente pour aujourd'hui !</p>

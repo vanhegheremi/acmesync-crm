@@ -3,12 +3,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import { ShoppingBag, Factory, Plus, Calendar, AlertTriangle } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { isDemoModeActive } from "@/hooks/useDemoMode";
 import { DEMO_ALL_LEADS } from "@/data/demoData";
 
-function computeDemoStats(type: "tryon" | "himyt") {
+function computeStats(type: "tryon" | "himyt") {
   const today = new Date().toISOString().split("T")[0];
   const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
   const active = DEMO_ALL_LEADS.filter(
@@ -31,111 +28,8 @@ function computeDemoStats(type: "tryon" | "himyt") {
 
 const Index = () => {
   const navigate = useNavigate();
-  const isDemo = isDemoModeActive();
-
-  const { data: tryonStats } = useQuery({
-    queryKey: ["tryon-stats"],
-    queryFn: async () => {
-      if (isDemo) return computeDemoStats("tryon");
-
-      const today = new Date().toISOString().split("T")[0];
-      const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
-
-      const { count: totalCount } = await supabase
-        .from("leads")
-        .select("*", { count: "exact", head: true })
-        .eq("type", "tryon")
-        .neq("status", "won")
-        .neq("status", "lost");
-
-      const { count: actionTodayCount } = await supabase
-        .from("leads")
-        .select("*", { count: "exact", head: true })
-        .eq("type", "tryon")
-        .eq("next_action_date", today)
-        .neq("status", "won")
-        .neq("status", "lost");
-
-      const { data: staleLeadsData } = await supabase
-        .from("leads")
-        .select("*")
-        .eq("type", "tryon")
-        .lt("last_contact_date", sevenDaysAgo)
-        .neq("status", "won")
-        .neq("status", "lost");
-
-      const staleCount = (staleLeadsData || []).filter(lead => {
-        if (!lead.next_action_date) return true;
-        return new Date(lead.next_action_date) <= new Date(today);
-      }).length;
-
-      const { count: overdueCount } = await supabase
-        .from("leads")
-        .select("*", { count: "exact", head: true })
-        .eq("type", "tryon")
-        .lt("next_action_date", today)
-        .neq("status", "won")
-        .neq("status", "lost");
-
-      return {
-        total: totalCount || 0,
-        actionNeeded: (actionTodayCount || 0) + staleCount,
-        overdue: overdueCount || 0
-      };
-    },
-  });
-
-  const { data: himytStats } = useQuery({
-    queryKey: ["himyt-stats"],
-    queryFn: async () => {
-      if (isDemo) return computeDemoStats("himyt");
-
-      const today = new Date().toISOString().split("T")[0];
-      const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
-
-      const { count: totalCount } = await supabase
-        .from("leads")
-        .select("*", { count: "exact", head: true })
-        .eq("type", "himyt")
-        .neq("status", "won")
-        .neq("status", "lost");
-
-      const { count: actionTodayCount } = await supabase
-        .from("leads")
-        .select("*", { count: "exact", head: true })
-        .eq("type", "himyt")
-        .eq("next_action_date", today)
-        .neq("status", "won")
-        .neq("status", "lost");
-
-      const { data: staleLeadsData } = await supabase
-        .from("leads")
-        .select("*")
-        .eq("type", "himyt")
-        .lt("last_contact_date", sevenDaysAgo)
-        .neq("status", "won")
-        .neq("status", "lost");
-
-      const staleCount = (staleLeadsData || []).filter(lead => {
-        if (!lead.next_action_date) return true;
-        return new Date(lead.next_action_date) <= new Date(today);
-      }).length;
-
-      const { count: overdueCount } = await supabase
-        .from("leads")
-        .select("*", { count: "exact", head: true })
-        .eq("type", "himyt")
-        .lt("next_action_date", today)
-        .neq("status", "won")
-        .neq("status", "lost");
-
-      return {
-        total: totalCount || 0,
-        actionNeeded: (actionTodayCount || 0) + staleCount,
-        overdue: overdueCount || 0
-      };
-    },
-  });
+  const tryonStats = computeStats("tryon");
+  const himytStats = computeStats("himyt");
 
   return (
     <div className="min-h-screen bg-background">

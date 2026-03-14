@@ -7,10 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft, Building2, User, Mail, Phone, Globe, Calendar, Pencil, Trash2 } from "lucide-react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { Lead, Activity, STATUS_LABELS, PRIORITY_LABELS, TRYON_STATUSES, HIMYT_STATUSES, LeadStatus, ACTIVITY_TYPE_LABELS, ORIGIN_LABELS, TEMPERATURE_LABELS, LeadOrigin, LeadTemperature, Priority } from "@/types/crm";
-import { isDemoModeActive } from "@/hooks/useDemoMode";
 import { DEMO_ALL_LEADS, DEMO_ACTIVITIES } from "@/data/demoData";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -50,12 +47,15 @@ import {
 const LeadDetails = () => {
   const navigate = useNavigate();
   const { id } = useParams();
-  const queryClient = useQueryClient();
-  const isDemo = isDemoModeActive();
 
-  const [notes, setNotes] = useState("");
-  const [nextAction, setNextAction] = useState("");
-  const [nextActionDate, setNextActionDate] = useState("");
+  const lead = DEMO_ALL_LEADS.find((l) => l.id === id) ?? null;
+  const activities: Activity[] = DEMO_ACTIVITIES
+    .filter((a) => a.lead_id === id)
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+  const [notes, setNotes] = useState(lead?.notes || "");
+  const [nextAction, setNextAction] = useState(lead?.next_action || "");
+  const [nextActionDate, setNextActionDate] = useState(lead?.next_action_date?.split("T")[0] || "");
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
   const editLeadSchema = z.object({
@@ -70,162 +70,18 @@ const LeadDetails = () => {
   const form = useForm<z.infer<typeof editLeadSchema>>({
     resolver: zodResolver(editLeadSchema),
     defaultValues: {
-      company_name: "",
-      contact_name: "",
-      email: "",
-      phone: "",
-      website: "",
-      segment: "",
+      company_name: lead?.company_name || "",
+      contact_name: lead?.contact_name || "",
+      email: lead?.email || "",
+      phone: lead?.phone || "",
+      website: lead?.website || "",
+      segment: lead?.segment || "",
     },
   });
 
-  const { data: lead, isLoading } = useQuery({
-    queryKey: ["lead", id],
-    queryFn: async () => {
-      if (isDemo) {
-        const demoLead = DEMO_ALL_LEADS.find((l) => l.id === id);
-        if (!demoLead) throw new Error("Lead introuvable");
-        setNotes(demoLead.notes || "");
-        setNextAction(demoLead.next_action || "");
-        setNextActionDate(demoLead.next_action_date?.split("T")[0] || "");
-        form.reset({
-          company_name: demoLead.company_name,
-          contact_name: demoLead.contact_name || "",
-          email: demoLead.email || "",
-          phone: demoLead.phone || "",
-          website: demoLead.website || "",
-          segment: demoLead.segment || "",
-        });
-        return demoLead;
-      }
-
-      const { data, error } = await supabase
-        .from("leads")
-        .select("*")
-        .eq("id", id)
-        .single();
-
-      if (error) throw error;
-      setNotes(data.notes || "");
-      setNextAction(data.next_action || "");
-      setNextActionDate(data.next_action_date?.split('T')[0] || "");
-
-      form.reset({
-        company_name: data.company_name,
-        contact_name: data.contact_name || "",
-        email: data.email || "",
-        phone: data.phone || "",
-        website: data.website || "",
-        segment: data.segment || "",
-      });
-
-      return data as Lead;
-    },
-    enabled: !!id,
-  });
-
-  const { data: activities = [] } = useQuery({
-    queryKey: ["activities", id],
-    queryFn: async () => {
-      if (isDemo) return DEMO_ACTIVITIES.filter((a) => a.lead_id === id).sort(
-        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-      );
-      const { data, error } = await supabase
-        .from("activities")
-        .select("*")
-        .eq("lead_id", id)
-        .order("date", { ascending: false });
-
-      if (error) throw error;
-      return data as Activity[];
-    },
-    enabled: !!id,
-  });
-
-  const updateLeadMutation = useMutation({
-    mutationFn: async (updates: Partial<Lead>) => {
-      if (isDemo) return;
-      const { error } = await supabase
-        .from("leads")
-        .update(updates)
-        .eq("id", id!);
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      if (isDemo) {
-        toast.info("Mode démo — modification non sauvegardée");
-        return;
-      }
-      queryClient.invalidateQueries({ queryKey: ["lead", id] });
-      toast.success("Lead mis à jour");
-    },
-  });
-
-  const completeNextActionMutation = useMutation({
-    mutationFn: async () => {
-      if (isDemo) return;
-      if (!nextAction) throw new Error("Aucune action à compléter");
-
-      const { error: activityError } = await supabase
-        .from("activities")
-        .insert({
-          lead_id: id!,
-          type: "other",
-          content: nextAction,
-          completed: true,
-          date: new Date().toISOString(),
-          done_by: "Rémi",
-        });
-
-      if (activityError) throw activityError;
-
-      const { error: leadError } = await supabase
-        .from("leads")
-        .update({
-          next_action: null,
-          next_action_date: null,
-          last_contact_date: new Date().toISOString(),
-        })
-        .eq("id", id!);
-
-      if (leadError) throw leadError;
-    },
-    onSuccess: () => {
-      if (isDemo) {
-        toast.info("Mode démo — modification non sauvegardée");
-        return;
-      }
-      queryClient.invalidateQueries({ queryKey: ["lead", id] });
-      queryClient.invalidateQueries({ queryKey: ["activities", id] });
-      setNextAction("");
-      setNextActionDate("");
-      toast.success("Tâche effectuée et ajoutée à l'historique");
-    },
-  });
-
-  const deleteActivityMutation = useMutation({
-    mutationFn: async (activityId: string) => {
-      if (isDemo) return;
-      const { error } = await supabase
-        .from("activities")
-        .delete()
-        .eq("id", activityId);
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      if (isDemo) {
-        toast.info("Mode démo — modification non sauvegardée");
-        return;
-      }
-      queryClient.invalidateQueries({ queryKey: ["activities", id] });
-      toast.success("Activité supprimée");
-    },
-    onError: () => {
-      toast.error("Erreur lors de la suppression");
-    },
-  });
+  const updateLeadMutation = { mutate: (_: Partial<Lead>, _opts?: any) => { toast.info("Données de démo — non sauvegardées"); _opts?.onSuccess?.(); }, isPending: false };
+  const completeNextActionMutation = { mutate: () => { toast.info("Données de démo — non sauvegardées"); }, isPending: false };
+  const deleteActivityMutation = { mutate: (_: string) => { toast.info("Données de démo — non sauvegardées"); }, isPending: false };
 
   const handleSaveNotes = () => {
     updateLeadMutation.mutate({ notes });
@@ -254,10 +110,10 @@ const LeadDetails = () => {
     });
   };
 
-  if (isLoading || !lead) {
+  if (!lead) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <p className="text-muted-foreground">Chargement...</p>
+        <p className="text-muted-foreground">Lead introuvable</p>
       </div>
     );
   }

@@ -6,10 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ActivityType, ACTIVITY_TYPE_LABELS, Activity } from "@/types/crm";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { isDemoModeActive } from "@/hooks/useDemoMode";
 
 interface AddActivityDialogProps {
   leadId: string;
@@ -24,7 +21,6 @@ const AddActivityDialog = ({ leadId, trigger, activity, mode = "add" }: AddActiv
   const [content, setContent] = useState("");
   const [doneBy, setDoneBy] = useState("");
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
-  const queryClient = useQueryClient();
 
   useEffect(() => {
     if (activity && mode === "edit") {
@@ -35,63 +31,14 @@ const AddActivityDialog = ({ leadId, trigger, activity, mode = "add" }: AddActiv
     }
   }, [activity, mode]);
 
-  const saveActivityMutation = useMutation({
-    mutationFn: async () => {
-      if (isDemoModeActive()) return;
-      if (mode === "edit" && activity) {
-        // For editing, preserve the original date or use specified date at noon UTC to avoid timezone shift
-        const dateValue = date ? new Date(date + 'T12:00:00Z').toISOString() : new Date().toISOString();
-        const { error } = await supabase
-          .from("activities")
-          .update({
-            type,
-            content,
-            done_by: doneBy || null,
-            date: dateValue,
-          })
-          .eq("id", activity.id);
-
-        if (error) throw error;
-      } else {
-        // Use current timestamp instead of converting date string to avoid timezone issues
-        const { error } = await supabase
-          .from("activities")
-          .insert({
-            lead_id: leadId,
-            type,
-            content,
-            done_by: doneBy || null,
-            date: new Date().toISOString(),
-          });
-
-        if (error) throw error;
-      }
-    },
-    onSuccess: () => {
-      if (isDemoModeActive()) {
-        toast.info("Mode démo — modification non sauvegardée");
-        setOpen(false);
-        return;
-      }
-      queryClient.invalidateQueries({ queryKey: ["activities", leadId] });
-      queryClient.invalidateQueries({ queryKey: ["lead", leadId] });
-      toast.success(mode === "edit" ? "Activité modifiée" : "Activité ajoutée");
-      if (mode === "add") {
-        setContent("");
-        setDoneBy("");
-        setDate(new Date().toISOString().split('T')[0]);
-      }
-      setOpen(false);
-    },
-  });
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!content.trim()) {
       toast.error("Le contenu est requis");
       return;
     }
-    saveActivityMutation.mutate();
+    toast.info("Données de démo — activité non sauvegardée");
+    setOpen(false);
   };
 
   return (
@@ -157,10 +104,8 @@ const AddActivityDialog = ({ leadId, trigger, activity, mode = "add" }: AddActiv
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>
               Annuler
             </Button>
-            <Button type="submit" disabled={saveActivityMutation.isPending}>
-              {saveActivityMutation.isPending 
-                ? (mode === "edit" ? "Modification..." : "Ajout...") 
-                : (mode === "edit" ? "Modifier" : "Ajouter")}
+            <Button type="submit">
+              {mode === "edit" ? "Modifier" : "Ajouter"}
             </Button>
           </div>
         </form>

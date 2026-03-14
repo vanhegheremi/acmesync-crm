@@ -3,38 +3,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { Activity } from "@/types/crm";
 import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
-import { isDemoModeActive } from "@/hooks/useDemoMode";
 import { DEMO_ACTIVITIES_WITH_LEADS } from "@/data/demoData";
 
 const Activities = () => {
   const navigate = useNavigate();
-  const isDemo = isDemoModeActive();
-
-  const { data: activitiesWithLeads = [], isLoading } = useQuery({
-    queryKey: ["all-activities"],
-    queryFn: async () => {
-      if (isDemo) return DEMO_ACTIVITIES_WITH_LEADS;
-      const { data, error } = await supabase
-        .from("activities")
-        .select(`
-          *,
-          leads:lead_id (
-            company_name,
-            type
-          )
-        `)
-        .order("date", { ascending: false })
-        .limit(50);
-
-      if (error) throw error;
-      return data;
-    },
-  });
+  const activitiesWithLeads = DEMO_ACTIVITIES_WITH_LEADS;
 
   return (
     <div className="min-h-screen bg-background">
@@ -53,11 +28,7 @@ const Activities = () => {
       </header>
 
       <main className="container mx-auto px-6 py-8 max-w-4xl">
-        {isLoading ? (
-          <div className="flex items-center justify-center h-64">
-            <p className="text-muted-foreground">Chargement...</p>
-          </div>
-        ) : activitiesWithLeads.length === 0 ? (
+        {activitiesWithLeads.length === 0 ? (
           <Card>
             <CardContent className="py-12 text-center">
               <p className="text-muted-foreground">Aucune activité enregistrée</p>
