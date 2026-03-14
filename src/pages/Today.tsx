@@ -8,9 +8,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { Lead, STATUS_LABELS } from "@/types/crm";
 import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
+import { isDemoModeActive } from "@/hooks/useDemoMode";
+import { DEMO_ALL_LEADS } from "@/data/demoData";
 
 const Today = () => {
   const navigate = useNavigate();
+  const isDemo = isDemoModeActive();
 
   const today = new Date().toISOString().split('T')[0];
   const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
@@ -18,6 +21,9 @@ const Today = () => {
   const { data: scheduledLeads = [], isLoading: isLoadingScheduled } = useQuery({
     queryKey: ["scheduled-leads"],
     queryFn: async () => {
+      if (isDemo) return DEMO_ALL_LEADS.filter(
+        (l) => l.next_action_date?.split("T")[0] === today && l.status !== "won" && l.status !== "lost"
+      );
       const { data, error } = await supabase
         .from("leads")
         .select("*")
@@ -33,6 +39,12 @@ const Today = () => {
   const { data: staleLeads = [], isLoading: isLoadingStale } = useQuery({
     queryKey: ["stale-leads"],
     queryFn: async () => {
+      if (isDemo) return DEMO_ALL_LEADS.filter((l) => {
+        if (l.status === "won" || l.status === "lost") return false;
+        if (!l.last_contact_date || l.last_contact_date >= sevenDaysAgo) return false;
+        if (!l.next_action_date) return true;
+        return l.next_action_date <= today;
+      });
       const { data, error } = await supabase
         .from("leads")
         .select("*")
@@ -41,7 +53,6 @@ const Today = () => {
         .neq("status", "lost");
 
       if (error) throw error;
-      // Exclure les leads qui ont déjà une action future planifiée
       return (data as Lead[]).filter(lead => {
         if (!lead.next_action_date) return true;
         return new Date(lead.next_action_date) <= new Date(today);
@@ -52,6 +63,9 @@ const Today = () => {
   const { data: interestedTryonLeads = [], isLoading: isLoadingInterested } = useQuery({
     queryKey: ["interested-tryon-leads"],
     queryFn: async () => {
+      if (isDemo) return DEMO_ALL_LEADS.filter(
+        (l) => l.type === "tryon" && l.status === "interested"
+      );
       const { data, error } = await supabase
         .from("leads")
         .select("*")
@@ -68,6 +82,9 @@ const Today = () => {
   const { data: problemDetectedHimytLeads = [], isLoading: isLoadingProblem } = useQuery({
     queryKey: ["problem-detected-himyt-leads"],
     queryFn: async () => {
+      if (isDemo) return DEMO_ALL_LEADS.filter(
+        (l) => l.type === "himyt" && l.status === "problem_detected"
+      );
       const { data, error } = await supabase
         .from("leads")
         .select("*")
@@ -84,6 +101,12 @@ const Today = () => {
   const { data: highPriorityLeads = [], isLoading: isLoadingHighPriority } = useQuery({
     queryKey: ["high-priority-leads"],
     queryFn: async () => {
+      if (isDemo) return DEMO_ALL_LEADS.filter((l) => {
+        if (l.status === "won" || l.status === "lost") return false;
+        if (l.priority !== "high") return false;
+        if (!l.last_contact_date || l.last_contact_date >= sevenDaysAgo) return false;
+        return true;
+      });
       const { data, error } = await supabase
         .from("leads")
         .select("*")

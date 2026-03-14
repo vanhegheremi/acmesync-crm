@@ -6,14 +6,18 @@ import { supabase } from "@/integrations/supabase/client";
 import { Lead, TRYON_STATUSES, LeadStatus } from "@/types/crm";
 import { KanbanBoard } from "@/components/crm/KanbanBoard";
 import { toast } from "sonner";
+import { isDemoModeActive } from "@/hooks/useDemoMode";
+import { DEMO_TRYON_LEADS } from "@/data/demoData";
 
 const PipelineTryon = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const isDemo = isDemoModeActive();
 
   const { data: leads = [], isLoading } = useQuery({
     queryKey: ["leads-tryon"],
     queryFn: async () => {
+      if (isDemo) return DEMO_TRYON_LEADS;
       const { data, error } = await supabase
         .from("leads")
         .select("*")
@@ -27,6 +31,7 @@ const PipelineTryon = () => {
 
   const updateStatusMutation = useMutation({
     mutationFn: async ({ leadId, newStatus }: { leadId: string; newStatus: LeadStatus }) => {
+      if (isDemo) return;
       const { error } = await supabase
         .from("leads")
         .update({ status: newStatus, updated_at: new Date().toISOString() })
@@ -35,6 +40,10 @@ const PipelineTryon = () => {
       if (error) throw error;
     },
     onSuccess: () => {
+      if (isDemo) {
+        toast.info("Mode démo — modification non sauvegardée");
+        return;
+      }
       queryClient.invalidateQueries({ queryKey: ["leads-tryon"] });
       toast.success("Statut mis à jour");
     },
