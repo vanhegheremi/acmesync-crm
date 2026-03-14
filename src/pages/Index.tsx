@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { ShoppingBag, Factory, Plus, Calendar, AlertTriangle } from "lucide-react";
 import { DEMO_ALL_LEADS } from "@/data/demoData";
 
-function computeStats(type: "tryon" | "himyt") {
+function computeStats(type: "particuliers" | "professionnels") {
   const today = new Date().toISOString().split("T")[0];
   const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
   const active = DEMO_ALL_LEADS.filter(
@@ -28,15 +28,15 @@ function computeStats(type: "tryon" | "himyt") {
 
 const Index = () => {
   const navigate = useNavigate();
-  const tryonStats = computeStats("tryon");
-  const himytStats = computeStats("himyt");
+  const tryonStats = computeStats("particuliers");
+  const himytStats = computeStats("professionnels");
 
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-6 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground">CRM Pipeline</h1>
-          <p className="text-muted-foreground mt-1">HIMYT x TRYON</p>
+          <h1 className="text-3xl font-bold text-foreground">CRM RVH.APP</h1>
+          <p className="text-muted-foreground mt-1">Gestion de vos prospects artisans</p>
         </div>
 
         <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
@@ -49,9 +49,9 @@ const Index = () => {
                 <div className="p-3 rounded-lg bg-primary/10">
                   <ShoppingBag className="w-6 h-6 text-primary" />
                 </div>
-                <CardTitle className="text-2xl text-foreground">Pipeline TRYON</CardTitle>
+                <CardTitle className="text-2xl text-foreground">Pipeline Particuliers</CardTitle>
               </div>
-              <CardDescription className="text-base">Eshops / Mode / Shopify</CardDescription>
+              <CardDescription className="text-base">Artisans indépendants / Auto-entrepreneurs</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
@@ -89,11 +89,11 @@ const Index = () => {
                 className="w-full mt-4"
                 onClick={(e) => {
                   e.stopPropagation();
-                  navigate("/add-lead?type=tryon");
+                  navigate("/add-lead?type=particuliers");
                 }}
               >
                 <Plus className="w-4 h-4 mr-2" />
-                Ajouter un lead TRYON
+                Ajouter un artisan
               </Button>
             </CardContent>
           </Card>
@@ -107,9 +107,9 @@ const Index = () => {
                 <div className="p-3 rounded-lg bg-accent/10">
                   <Factory className="w-6 h-6 text-accent" />
                 </div>
-                <CardTitle className="text-2xl text-foreground">Pipeline HIMYT</CardTitle>
+                <CardTitle className="text-2xl text-foreground">Pipeline Professionnels</CardTitle>
               </div>
-              <CardDescription className="text-base">Dev, Automation, IA</CardDescription>
+              <CardDescription className="text-base">Entreprises artisanales / Équipes</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
@@ -147,11 +147,11 @@ const Index = () => {
                 className="w-full mt-4 bg-accent hover:bg-accent/90"
                 onClick={(e) => {
                   e.stopPropagation();
-                  navigate("/add-lead?type=himyt");
+                  navigate("/add-lead?type=professionnels");
                 }}
               >
                 <Plus className="w-4 h-4 mr-2" />
-                Ajouter un lead HIMYT
+                Ajouter une entreprise
               </Button>
             </CardContent>
           </Card>

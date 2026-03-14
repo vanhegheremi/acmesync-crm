@@ -1,13 +1,13 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Plus } from "lucide-react";
-import { Lead, HIMYT_STATUSES, LeadStatus } from "@/types/crm";
+import { Lead, PROFESSIONNELS_STATUSES, LeadStatus } from "@/types/crm";
 import { KanbanBoard } from "@/components/crm/KanbanBoard";
-import { DEMO_HIMYT_LEADS } from "@/data/demoData";
+import { DEMO_PROFESSIONNELS_LEADS } from "@/data/demoData";
 
 const PipelineHimyt = () => {
   const navigate = useNavigate();
-  const leads: Lead[] = DEMO_HIMYT_LEADS;
+  const leads: Lead[] = DEMO_PROFESSIONNELS_LEADS;
 
   const handleStatusChange = (_leadId: string, _newStatus: LeadStatus) => {
     // Données de démo — aucune persistance
@@ -23,14 +23,14 @@ const PipelineHimyt = () => {
                 <ArrowLeft className="w-5 h-5" />
               </Button>
               <div>
-                <h1 className="text-2xl font-bold text-foreground">Pipeline HIMYT</h1>
-                <p className="text-sm text-muted-foreground">Dev/IA/Auto</p>
+                <h1 className="text-2xl font-bold text-foreground">Pipeline Professionnels</h1>
+                <p className="text-sm text-muted-foreground">Entreprises artisanales / Équipes</p>
               </div>
             </div>
             <div className="flex gap-3">
-              <Button className="bg-accent hover:bg-accent/90" onClick={() => navigate("/add-lead?type=himyt")}>
+              <Button className="bg-accent hover:bg-accent/90" onClick={() => navigate("/add-lead?type=professionnels")}>
                 <Plus className="w-4 h-4 mr-2" />
-                Ajouter un lead
+                Ajouter une entreprise
               </Button>
             </div>
           </div>
@@ -40,7 +40,7 @@ const PipelineHimyt = () => {
       <main className="container mx-auto px-6 py-6 max-w-full overflow-hidden">
         <KanbanBoard
           leads={leads}
-          statuses={HIMYT_STATUSES}
+          statuses={PROFESSIONNELS_STATUSES}
           onLeadClick={(lead) => navigate(`/lead/${lead.id}`)}
           onStatusChange={handleStatusChange}
         />

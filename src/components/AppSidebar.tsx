@@ -19,8 +19,8 @@ import {
 const menuItems = [
   { title: "Accueil", url: "/", icon: Home },
   { title: "Aujourd'hui", url: "/today", icon: Calendar },
-  { title: "Pipeline TRYON", url: "/pipeline/tryon", icon: ShoppingBag },
-  { title: "Pipeline HIMYT", url: "/pipeline/himyt", icon: Factory },
+  { title: "Pipeline Particuliers", url: "/pipeline/tryon", icon: ShoppingBag },
+  { title: "Pipeline Professionnels", url: "/pipeline/himyt", icon: Factory },
   { title: "Activités", url: "/activities", icon: Activity },
 ];
 
@@ -78,22 +78,22 @@ export function AppSidebar() {
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
                   <NavLink
-                    to="/add-lead?type=tryon"
+                    to="/add-lead?type=particuliers"
                     className="hover:bg-muted/50"
                   >
                     <Plus className="h-4 w-4" />
-                    {!isCollapsed && <span>Nouveau lead TRYON</span>}
+                    {!isCollapsed && <span>Nouveau artisan indép.</span>}
                   </NavLink>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
                   <NavLink
-                    to="/add-lead?type=himyt"
+                    to="/add-lead?type=professionnels"
                     className="hover:bg-muted/50"
                   >
                     <Plus className="h-4 w-4" />
-                    {!isCollapsed && <span>Nouveau lead HIMYT</span>}
+                    {!isCollapsed && <span>Nouvelle entreprise</span>}
                   </NavLink>
                 </SidebarMenuButton>
               </SidebarMenuItem>

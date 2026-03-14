@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft, Building2, User, Mail, Phone, Globe, Calendar, Pencil, Trash2 } from "lucide-react";
-import { Lead, Activity, STATUS_LABELS, PRIORITY_LABELS, TRYON_STATUSES, HIMYT_STATUSES, LeadStatus, ACTIVITY_TYPE_LABELS, ORIGIN_LABELS, TEMPERATURE_LABELS, LeadOrigin, LeadTemperature, Priority } from "@/types/crm";
+import { Lead, Activity, STATUS_LABELS, PRIORITY_LABELS, PARTICULIERS_STATUSES, PROFESSIONNELS_STATUSES, LeadStatus, ACTIVITY_TYPE_LABELS, ORIGIN_LABELS, TEMPERATURE_LABELS, LeadOrigin, LeadTemperature, Priority } from "@/types/crm";
 import { DEMO_ALL_LEADS, DEMO_ACTIVITIES } from "@/data/demoData";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -118,7 +118,7 @@ const LeadDetails = () => {
     );
   }
 
-  const statuses = lead.type === "tryon" ? TRYON_STATUSES : HIMYT_STATUSES;
+  const statuses = lead.type === "particuliers" ? PARTICULIERS_STATUSES : PROFESSIONNELS_STATUSES;
 
   return (
     <div className="min-h-screen bg-background">
@@ -132,7 +132,7 @@ const LeadDetails = () => {
               <h1 className="text-2xl font-bold text-foreground">{lead.company_name}</h1>
               <div className="flex items-center gap-2 mt-1">
                 <p className="text-sm text-muted-foreground">
-                  {lead.type === "tryon" ? "TRYON" : "HIMYT"}
+                  {lead.type === "particuliers" ? "Particuliers" : "Professionnels"}
                 </p>
                 {lead.contact_name && (
                   <>

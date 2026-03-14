@@ -43,11 +43,11 @@ const Activities = () => {
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
                         <Badge variant="outline">{activity.type}</Badge>
-                        <Badge className={activity.leads?.type === 'tryon' ? 'bg-primary' : 'bg-accent'}>
-                          {activity.leads?.type === 'tryon' ? 'TRYON' : 'HIMYT'}
+                        <Badge className={activity.lead_type === 'particuliers' ? 'bg-primary' : 'bg-accent'}>
+                          {activity.lead_type === 'particuliers' ? 'Particuliers' : 'Professionnels'}
                         </Badge>
                         <span className="text-sm font-semibold text-foreground">
-                          {activity.leads?.company_name}
+                          {activity.lead_company_name}
                         </span>
                       </div>
                       <p className="text-sm text-foreground mb-2">{activity.content}</p>

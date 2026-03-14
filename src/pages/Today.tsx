@@ -26,11 +26,11 @@ const Today = () => {
   });
 
   const interestedTryonLeads = DEMO_ALL_LEADS.filter(
-    (l) => l.type === "tryon" && l.status === "interested"
+    (l) => l.type === "particuliers" && l.status === "contact"
   );
 
   const problemDetectedHimytLeads = DEMO_ALL_LEADS.filter(
-    (l) => l.type === "himyt" && l.status === "problem_detected"
+    (l) => l.type === "professionnels" && l.status === "besoin_detecte"
   );
 
   const highPriorityLeads = DEMO_ALL_LEADS.filter((l) => {
@@ -54,8 +54,8 @@ const Today = () => {
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-2">
               <h3 className="font-semibold text-foreground">{lead.company_name}</h3>
-              <Badge className={lead.type === 'tryon' ? 'bg-primary' : 'bg-accent'}>
-                {lead.type === 'tryon' ? 'TRYON' : 'HIMYT'}
+              <Badge className={lead.type === 'particuliers' ? 'bg-primary' : 'bg-accent'}>
+                {lead.type === 'particuliers' ? 'Particuliers' : 'Professionnels'}
               </Badge>
               <Badge variant="outline">{STATUS_LABELS[lead.status]}</Badge>
             </div>
@@ -136,7 +136,7 @@ const Today = () => {
             {interestedTryonLeads.length > 0 && (
               <div className="space-y-3">
                 <h2 className="text-lg font-semibold flex items-center gap-2">
-                  🎯 TRYON intéressés - Démo à programmer
+                  🎯 Particuliers en contact — Démo RVH.APP à programmer
                   <Badge variant="secondary">{interestedTryonLeads.length}</Badge>
                 </h2>
                 {interestedTryonLeads.map((lead) => renderLeadCard(lead))}
@@ -146,7 +146,7 @@ const Today = () => {
             {problemDetectedHimytLeads.length > 0 && (
               <div className="space-y-3">
                 <h2 className="text-lg font-semibold flex items-center gap-2">
-                  🔍 HIMYT problème détecté - Discovery call à planifier
+                  🔍 Pros avec besoin identifié — RDV à planifier
                   <Badge variant="secondary">{problemDetectedHimytLeads.length}</Badge>
                 </h2>
                 {problemDetectedHimytLeads.map((lead) => renderLeadCard(lead))}

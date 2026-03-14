@@ -16,7 +16,7 @@ const AddLead = () => {
   const typeParam = searchParams.get("type") as LeadType | null;
 
   const [formData, setFormData] = useState({
-    type: typeParam || "tryon" as LeadType,
+    type: typeParam || "particuliers" as LeadType,
     company_name: "",
     contact_name: "",
     email: "",
@@ -32,7 +32,7 @@ const AddLead = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     toast.info("Données de démo — lead non sauvegardé");
-    navigate(formData.type === "tryon" ? "/pipeline/tryon" : "/pipeline/himyt");
+    navigate(formData.type === "particuliers" ? "/pipeline/tryon" : "/pipeline/himyt");
   };
 
   return (
@@ -65,8 +65,8 @@ const AddLead = () => {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="tryon">TRYON (Eshops/Mode)</SelectItem>
-                    <SelectItem value="himyt">HIMYT (Dev/IA/Auto)</SelectItem>
+                    <SelectItem value="particuliers">Particuliers (Artisan indépendant)</SelectItem>
+                    <SelectItem value="professionnels">Professionnels (Entreprise artisanale)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -128,7 +128,7 @@ const AddLead = () => {
                   <Label htmlFor="segment">Segment</Label>
                   <Input
                     id="segment"
-                    placeholder={formData.type === "tryon" ? "ex: Mode femme, CA 500K+" : "ex: Industrie, 50-100 employés"}
+                    placeholder={formData.type === "particuliers" ? "ex: Plombier, auto-entrepreneur" : "ex: Maçonnerie, 8 employés"}
                     value={formData.segment}
                     onChange={(e) => setFormData({ ...formData, segment: e.target.value })}
                   />

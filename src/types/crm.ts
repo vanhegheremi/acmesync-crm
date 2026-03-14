@@ -1,11 +1,11 @@
-export type LeadType = 'tryon' | 'himyt';
+export type LeadType = 'particuliers' | 'professionnels';
 
 export type Priority = 'low' | 'medium' | 'high';
 
-export type TryonStatus = 'cold' | 'interested' | 'demo' | 'test' | 'won' | 'lost';
-export type HimytStatus = 'cold' | 'problem_detected' | 'discovery_call' | 'proposal' | 'won' | 'lost';
+export type ParticuliersStatus = 'cold' | 'contact' | 'devis_envoye' | 'chantier' | 'won' | 'lost';
+export type ProfessionnelsStatus = 'cold' | 'besoin_detecte' | 'rdv' | 'devis_envoye' | 'won' | 'lost';
 
-export type LeadStatus = TryonStatus | HimytStatus;
+export type LeadStatus = ParticuliersStatus | ProfessionnelsStatus;
 
 export type ActivityType = 'email' | 'call' | 'linkedin' | 'demo' | 'instagram' | 'whatsapp' | 'other';
 
@@ -44,18 +44,17 @@ export interface Activity {
   created_at: string;
 }
 
-export const TRYON_STATUSES: TryonStatus[] = ['cold', 'interested', 'demo', 'test', 'won', 'lost'];
-export const HIMYT_STATUSES: HimytStatus[] = ['cold', 'problem_detected', 'discovery_call', 'proposal', 'won', 'lost'];
+export const PARTICULIERS_STATUSES: ParticuliersStatus[] = ['cold', 'contact', 'devis_envoye', 'chantier', 'won', 'lost'];
+export const PROFESSIONNELS_STATUSES: ProfessionnelsStatus[] = ['cold', 'besoin_detecte', 'rdv', 'devis_envoye', 'won', 'lost'];
 
 export const STATUS_LABELS: Record<LeadStatus, string> = {
-  cold: 'Cold',
-  interested: 'Intéressé',
-  demo: 'Démo',
-  test: 'Test en cours',
-  problem_detected: 'Problème détecté',
-  discovery_call: 'Discovery Call',
-  proposal: 'Proposition',
-  won: 'Gagné',
+  cold: 'À contacter',
+  contact: 'Contact pris',
+  devis_envoye: 'Devis envoyé',
+  chantier: 'Chantier en cours',
+  besoin_detecte: 'Besoin identifié',
+  rdv: 'RDV démo',
+  won: 'Client RVH.APP',
   lost: 'Perdu',
 };
 
