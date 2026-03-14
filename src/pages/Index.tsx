@@ -5,13 +5,39 @@ import { useNavigate } from "react-router-dom";
 import { ShoppingBag, Factory, Plus, Calendar, AlertTriangle } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { isDemoModeActive } from "@/hooks/useDemoMode";
+import { DEMO_ALL_LEADS } from "@/data/demoData";
+
+function computeDemoStats(type: "tryon" | "himyt") {
+  const today = new Date().toISOString().split("T")[0];
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+  const active = DEMO_ALL_LEADS.filter(
+    (l) => l.type === type && l.status !== "won" && l.status !== "lost"
+  );
+  const totalCount = active.length;
+  const actionTodayCount = active.filter(
+    (l) => l.next_action_date?.split("T")[0] === today
+  ).length;
+  const staleCount = active.filter((l) => {
+    if (!l.last_contact_date || l.last_contact_date >= sevenDaysAgo) return false;
+    if (!l.next_action_date) return true;
+    return l.next_action_date <= today;
+  }).length;
+  const overdueCount = active.filter(
+    (l) => l.next_action_date && l.next_action_date.split("T")[0] < today
+  ).length;
+  return { total: totalCount, actionNeeded: actionTodayCount + staleCount, overdue: overdueCount };
+}
 
 const Index = () => {
   const navigate = useNavigate();
+  const isDemo = isDemoModeActive();
 
   const { data: tryonStats } = useQuery({
     queryKey: ["tryon-stats"],
     queryFn: async () => {
+      if (isDemo) return computeDemoStats("tryon");
+
       const today = new Date().toISOString().split("T")[0];
       const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
@@ -22,7 +48,6 @@ const Index = () => {
         .neq("status", "won")
         .neq("status", "lost");
 
-      // Get leads with action today
       const { count: actionTodayCount } = await supabase
         .from("leads")
         .select("*", { count: "exact", head: true })
@@ -31,7 +56,6 @@ const Index = () => {
         .neq("status", "won")
         .neq("status", "lost");
 
-      // Get stale leads (7+ days without contact) but exclude those with future actions
       const { data: staleLeadsData } = await supabase
         .from("leads")
         .select("*")
@@ -40,7 +64,6 @@ const Index = () => {
         .neq("status", "won")
         .neq("status", "lost");
 
-      // Filter out leads with future actions
       const staleCount = (staleLeadsData || []).filter(lead => {
         if (!lead.next_action_date) return true;
         return new Date(lead.next_action_date) <= new Date(today);
@@ -54,10 +77,10 @@ const Index = () => {
         .neq("status", "won")
         .neq("status", "lost");
 
-      return { 
-        total: totalCount || 0, 
-        actionNeeded: (actionTodayCount || 0) + staleCount, 
-        overdue: overdueCount || 0 
+      return {
+        total: totalCount || 0,
+        actionNeeded: (actionTodayCount || 0) + staleCount,
+        overdue: overdueCount || 0
       };
     },
   });
@@ -65,6 +88,8 @@ const Index = () => {
   const { data: himytStats } = useQuery({
     queryKey: ["himyt-stats"],
     queryFn: async () => {
+      if (isDemo) return computeDemoStats("himyt");
+
       const today = new Date().toISOString().split("T")[0];
       const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
@@ -75,7 +100,6 @@ const Index = () => {
         .neq("status", "won")
         .neq("status", "lost");
 
-      // Get leads with action today
       const { count: actionTodayCount } = await supabase
         .from("leads")
         .select("*", { count: "exact", head: true })
@@ -84,7 +108,6 @@ const Index = () => {
         .neq("status", "won")
         .neq("status", "lost");
 
-      // Get stale leads (7+ days without contact) but exclude those with future actions
       const { data: staleLeadsData } = await supabase
         .from("leads")
         .select("*")
@@ -93,7 +116,6 @@ const Index = () => {
         .neq("status", "won")
         .neq("status", "lost");
 
-      // Filter out leads with future actions
       const staleCount = (staleLeadsData || []).filter(lead => {
         if (!lead.next_action_date) return true;
         return new Date(lead.next_action_date) <= new Date(today);
@@ -107,10 +129,10 @@ const Index = () => {
         .neq("status", "won")
         .neq("status", "lost");
 
-      return { 
-        total: totalCount || 0, 
-        actionNeeded: (actionTodayCount || 0) + staleCount, 
-        overdue: overdueCount || 0 
+      return {
+        total: totalCount || 0,
+        actionNeeded: (actionTodayCount || 0) + staleCount,
+        overdue: overdueCount || 0
       };
     },
   });

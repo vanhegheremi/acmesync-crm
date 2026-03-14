@@ -8,13 +8,17 @@ import { supabase } from "@/integrations/supabase/client";
 import { Activity } from "@/types/crm";
 import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
+import { isDemoModeActive } from "@/hooks/useDemoMode";
+import { DEMO_ACTIVITIES_WITH_LEADS } from "@/data/demoData";
 
 const Activities = () => {
   const navigate = useNavigate();
+  const isDemo = isDemoModeActive();
 
   const { data: activitiesWithLeads = [], isLoading } = useQuery({
     queryKey: ["all-activities"],
     queryFn: async () => {
+      if (isDemo) return DEMO_ACTIVITIES_WITH_LEADS;
       const { data, error } = await supabase
         .from("activities")
         .select(`
